@@ -1,0 +1,40 @@
+{
+  "@@locale": "zh",
+
+  "appName": "管樂手帳",
+
+  "navTuner": "調音器",
+  "navRecorder": "錄音",
+  "navAnalysis": "分析",
+  "navSchedule": "行程",
+
+  "tunerTitle": "調音器",
+  "tunerInTune": "準確",
+  "tunerSharp": "偏高",
+  "tunerFlat": "偏低",
+
+  "recorderTitle": "錄音",
+  "recorderStart": "開始錄音",
+  "recorderStop": "停止",
+  "recorderNoRecordings": "還沒有錄音紀錄",
+
+  "analysisTitle": "AI 分析",
+  "analysisStart": "開始分析",
+  "analysisLoading": "分析中...",
+  "analysisMusicianLabel": "選擇音樂家風格",
+
+  "scheduleTitle": "行程",
+  "scheduleAdd": "新增練習",
+  "scheduleNoEvents": "還沒有行程紀錄",
+
+  "settingsTitle": "設定",
+  "settingsLanguage": "語言",
+  "settingsTunerReference": "調音基準音高",
+
+  "langZh": "中文",
+  "langEn": "English",
+  "langJa": "日本語",
+
+  "errorGeneral": "發生錯誤，請稍後再試",
+  "errorNetwork": "網路連線失敗"
+}

@@ -1,0 +1,40 @@
+{
+  "@@locale": "ja",
+
+  "appName": "管楽器手帳",
+
+  "navTuner": "チューナー",
+  "navRecorder": "録音",
+  "navAnalysis": "分析",
+  "navSchedule": "スケジュール",
+
+  "tunerTitle": "チューナー",
+  "tunerInTune": "正確",
+  "tunerSharp": "高い",
+  "tunerFlat": "低い",
+
+  "recorderTitle": "録音",
+  "recorderStart": "録音開始",
+  "recorderStop": "停止",
+  "recorderNoRecordings": "録音がまだありません",
+
+  "analysisTitle": "AI分析",
+  "analysisStart": "分析開始",
+  "analysisLoading": "分析中...",
+  "analysisMusicianLabel": "音楽家スタイルを選択",
+
+  "scheduleTitle": "スケジュール",
+  "scheduleAdd": "練習を追加",
+  "scheduleNoEvents": "スケジュールがまだありません",
+
+  "settingsTitle": "設定",
+  "settingsLanguage": "言語",
+  "settingsTunerReference": "チューナー基準音高",
+
+  "langZh": "中文",
+  "langEn": "English",
+  "langJa": "日本語",
+
+  "errorGeneral": "エラーが発生しました。後でもう一度お試しください",
+  "errorNetwork": "ネットワーク接続に失敗しました"
+}

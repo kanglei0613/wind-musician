@@ -1,0 +1,40 @@
+{
+  "@@locale": "en",
+
+  "appName": "Wind Musician",
+
+  "navTuner": "Tuner",
+  "navRecorder": "Recorder",
+  "navAnalysis": "Analysis",
+  "navSchedule": "Schedule",
+
+  "tunerTitle": "Tuner",
+  "tunerInTune": "In Tune",
+  "tunerSharp": "Sharp",
+  "tunerFlat": "Flat",
+
+  "recorderTitle": "Recorder",
+  "recorderStart": "Start Recording",
+  "recorderStop": "Stop",
+  "recorderNoRecordings": "No recordings yet",
+
+  "analysisTitle": "AI Analysis",
+  "analysisStart": "Start Analysis",
+  "analysisLoading": "Analyzing...",
+  "analysisMusicianLabel": "Select Musician Style",
+
+  "scheduleTitle": "Schedule",
+  "scheduleAdd": "Add Practice",
+  "scheduleNoEvents": "No schedule yet",
+
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsTunerReference": "Tuner Reference Pitch",
+
+  "langZh": "中文",
+  "langEn": "English",
+  "langJa": "日本語",
+
+  "errorGeneral": "Something went wrong, please try again",
+  "errorNetwork": "Network connection failed"
+}
