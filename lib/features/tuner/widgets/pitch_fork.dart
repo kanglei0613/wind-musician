@@ -65,6 +65,15 @@ class _PitchForkState extends State<PitchFork> {
   }
 
   Future<void> _onNoteDown(String note) async {
+    // Sustain 模式下：已按下的音再按就停止
+    if (_sustainOn && _activeHandles.containsKey(note)) {
+      final handle = _activeHandles[note];
+      if (handle != null) {
+        try { await SoLoud.instance.stop(handle); } catch (_) {}
+      }    
+      setState(() => _activeHandles.remove(note));
+      return;
+    }
     if (_activeHandles.containsKey(note)) return;
     final source = _sources[note];
     if (source == null) return;

@@ -79,10 +79,10 @@ class AppConstants {
 
   // ── 節拍器設定 ────────────────────────────────────
   /// 預設 BPM
-  static const int metronomeDefaultBpm = 100;
+  static const int metronomeDefaultBpm = 120;
   /// BPM 範圍
-  static const int metronomeMinBpm = 40;
-  static const int metronomeMaxBpm = 208;
+  static const int metronomeMinBpm = 20;
+  static const int metronomeMaxBpm = 320;
 
   // ── 樂譜功能（第二版預留）────────────────────────
   /// 支援的樂譜格式
