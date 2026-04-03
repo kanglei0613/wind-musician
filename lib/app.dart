@@ -26,7 +26,6 @@ class MyApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
-      // App 名稱
       title: 'Wind Musician',
 
       // 深色主題
@@ -41,6 +40,7 @@ class MyApp extends ConsumerWidget {
         Locale('zh'), // 中文
         Locale('en'), // 英文
         Locale('ja'), // 日文
+        Locale('ko'), // 韓文
       ],
       localizationsDelegates: const [
         AppLocalizations.delegate,

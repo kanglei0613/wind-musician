@@ -34,6 +34,7 @@
   "langZh": "中文",
   "langEn": "English",
   "langJa": "日本語",
+  "langKo": "한국어",
 
   "errorGeneral": "Something went wrong, please try again",
   "errorNetwork": "Network connection failed"

@@ -87,6 +87,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get langJa => '日本語';
 
   @override
+  String get langKo => '한국어';
+
+  @override
   String get errorGeneral => '發生錯誤，請稍後再試';
 
   @override

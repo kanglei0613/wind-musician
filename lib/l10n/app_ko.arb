@@ -1,0 +1,41 @@
+{
+  "@@locale": "ko",
+
+  "appName": "관악기 수첩",
+
+  "navTuner": "튜너",
+  "navRecorder": "녹음",
+  "navAnalysis": "분석",
+  "navSchedule": "일정",
+
+  "tunerTitle": "튜너",
+  "tunerInTune": "정확",
+  "tunerSharp": "높음",
+  "tunerFlat": "낮음",
+
+  "recorderTitle": "녹음",
+  "recorderStart": "녹음 시작",
+  "recorderStop": "정지",
+  "recorderNoRecordings": "녹음이 없습니다",
+
+  "analysisTitle": "AI 분석",
+  "analysisStart": "분석 시작",
+  "analysisLoading": "분석 중...",
+  "analysisMusicianLabel": "음악가 스타일 선택",
+
+  "scheduleTitle": "일정",
+  "scheduleAdd": "연습 추가",
+  "scheduleNoEvents": "일정이 없습니다",
+
+  "settingsTitle": "설정",
+  "settingsLanguage": "언어",
+  "settingsTunerReference": "튜너 기준 음높이",
+
+  "langZh": "中文",
+  "langEn": "English",
+  "langJa": "日本語",
+  "langKo": "한국어",
+
+  "errorGeneral": "오류가 발생했습니다. 다시 시도해 주세요",
+  "errorNetwork": "네트워크 연결에 실패했습니다"
+}

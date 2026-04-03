@@ -87,6 +87,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get langJa => '日本語';
 
   @override
+  String get langKo => '한국어';
+
+  @override
   String get errorGeneral => 'エラーが発生しました。後でもう一度お試しください';
 
   @override
