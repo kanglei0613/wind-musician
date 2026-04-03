@@ -39,22 +39,22 @@ class _TunerControlsState extends State<TunerControls> {
     return GestureDetector(
       onTap: _showReferenceSheet,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.surfaceLight),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.tune, size: 14, color: AppColors.textSecondary),
-            const SizedBox(width: 6),
+            const Icon(Icons.tune, size: 11, color: AppColors.textSecondary),
+            const SizedBox(width: 4),
             Text(
               'A4 = ${widget.referenceA4.toStringAsFixed(0)} Hz',
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 13,
+                fontSize: 11,
               ),
             ),
           ],
@@ -64,7 +64,6 @@ class _TunerControlsState extends State<TunerControls> {
   }
 }
 
-/// BottomSheet 內容（有自己的 State 管理數值）
 class _ReferenceSheetContent extends StatefulWidget {
   final double referenceA4;
   final ValueChanged<double> onChanged;
@@ -101,7 +100,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 標題
           const Text(
             '設定基準音高',
             style: TextStyle(
@@ -113,11 +111,9 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
           const SizedBox(height: 32),
 
-          // +/- 調整區
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 減少按鈕
               _AdjustButton(
                 icon: Icons.remove,
                 onTap: () => _adjust(-1),
@@ -126,7 +122,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
               const SizedBox(width: 32),
 
-              // 數值顯示
               Column(
                 children: [
                   Text(
@@ -149,7 +144,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
               const SizedBox(width: 32),
 
-              // 增加按鈕
               _AdjustButton(
                 icon: Icons.add,
                 onTap: () => _adjust(1),
@@ -160,7 +154,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
           const SizedBox(height: 24),
 
-          // 快速預設
           const Text(
             '常用設定',
             style: TextStyle(
@@ -214,7 +207,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
           const SizedBox(height: 24),
 
-          // 關閉按鈕
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -242,8 +234,6 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
   }
 }
 
-/// +/- 調整按鈕
-/// 長按可以快速調整 ±5
 class _AdjustButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -261,17 +251,13 @@ class _AdjustButton extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          color: AppColors.textPrimary,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.textPrimary, size: 20),
       ),
     );
   }

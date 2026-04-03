@@ -69,8 +69,8 @@ class AppConstants {
   static const String cloudRecordingPath = 'recordings';
 
   // ── 調音器設定 ────────────────────────────────────
-  /// 標準音高基準（Hz），A4 = 440Hz
-  static const double standardPitch = 440.0;
+  /// 標準音高基準（Hz），A4 = 442Hz
+  static const double standardPitch = 442.0;
   /// 音分誤差容忍範圍，在這範圍內視為準確
   static const double tunerInTuneCents = 10.0;
   /// 支援的調音基準範圍（Hz）

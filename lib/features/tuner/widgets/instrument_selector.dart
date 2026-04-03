@@ -5,12 +5,8 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/utils/music_utils.dart';
 
 /// 樂器選擇器
-/// 點擊後從底部滑出，依調性分組顯示所有樂器
 class InstrumentSelector extends StatelessWidget {
-  /// 目前選擇的樂器
   final Instrument selectedInstrument;
-
-  /// 選擇樂器後的回呼
   final ValueChanged<Instrument> onSelected;
 
   const InstrumentSelector({
@@ -42,10 +38,10 @@ class InstrumentSelector extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showSheet(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.surfaceLight),
         ),
         child: Row(
@@ -53,38 +49,38 @@ class InstrumentSelector extends StatelessWidget {
           children: [
             const Icon(
               Icons.music_note,
-              size: 14,
+              size: 11,
               color: AppColors.textSecondary,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
               selectedInstrument.name,
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 13,
+                fontSize: 11,
               ),
             ),
-            const SizedBox(width: 4),
-            // 顯示調性標籤（例如 Bb、Eb）
-            if (selectedInstrument.key != 'C')
+            if (selectedInstrument.key != 'C') ...[
+              const SizedBox(width: 3),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
+                  horizontal: 4,
+                  vertical: 1,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.accent1.withAlpha(40),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   selectedInstrument.key,
                   style: const TextStyle(
                     color: AppColors.accent1,
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+            ],
           ],
         ),
       ),
@@ -92,7 +88,6 @@ class InstrumentSelector extends StatelessWidget {
   }
 }
 
-/// BottomSheet 內容
 class _InstrumentSheetContent extends StatelessWidget {
   final Instrument selectedInstrument;
   final ValueChanged<Instrument> onSelected;
@@ -113,7 +108,6 @@ class _InstrumentSheetContent extends StatelessWidget {
       expand: false,
       builder: (context, scrollController) => Column(
         children: [
-          // 拖曳指示條
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             width: 40,
@@ -124,7 +118,6 @@ class _InstrumentSheetContent extends StatelessWidget {
             ),
           ),
 
-          // 標題
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: Align(
@@ -140,7 +133,6 @@ class _InstrumentSheetContent extends StatelessWidget {
             ),
           ),
 
-          // 樂器列表
           Expanded(
             child: ListView(
               controller: scrollController,
@@ -149,7 +141,6 @@ class _InstrumentSheetContent extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 調性分組標題
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
@@ -161,12 +152,10 @@ class _InstrumentSheetContent extends StatelessWidget {
                           color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
 
-                    // 該調性的樂器列表
                     ...entry.value.map((instrument) {
                       final isSelected =
                           instrument.name == selectedInstrument.name;
@@ -192,7 +181,6 @@ class _InstrumentSheetContent extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              // 樂器名稱（中文）
                               Expanded(
                                 child: Text(
                                   instrument.name,
@@ -207,8 +195,6 @@ class _InstrumentSheetContent extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
-                              // 英文名稱
                               Text(
                                 instrument.nameEn,
                                 style: const TextStyle(
@@ -216,10 +202,7 @@ class _InstrumentSheetContent extends StatelessWidget {
                                   fontSize: 12,
                                 ),
                               ),
-
                               const SizedBox(width: 8),
-
-                              // 選中圖示
                               if (isSelected)
                                 const Icon(
                                   Icons.check_circle,

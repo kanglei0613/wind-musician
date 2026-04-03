@@ -24,7 +24,7 @@ class TunerDisplay extends StatelessWidget {
         Text(
           pitchInfo?.noteOctave ?? '--',
           style: TextStyle(
-            fontSize: 80,
+            fontSize: 56,
             fontWeight: FontWeight.w700,
             color: _noteColor,
             letterSpacing: -2,
@@ -39,7 +39,7 @@ class TunerDisplay extends StatelessWidget {
               ? '${pitchInfo.frequency.toStringAsFixed(1)} Hz'
               : '-- Hz',
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 14,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w300,
           ),
@@ -110,8 +110,8 @@ class _TunerNeedle extends StatelessWidget {
     final angle = ((centsOff ?? 0) / 50).clamp(-1.0, 1.0) * (math.pi / 4);
 
     return SizedBox(
-      width: 240,
-      height: 130,
+      width: 220,
+      height: 90,
       child: CustomPaint(
         painter: _NeedlePainter(
           angle: angle,

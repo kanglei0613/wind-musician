@@ -12,19 +12,10 @@ import '../../../shared/utils/music_utils.dart';
 
 /// 調音器的狀態
 class TunerState {
-  /// 目前偵測到的音高資訊
   final PitchInfo? pitchInfo;
-
-  /// 是否正在聆聽
   final bool isListening;
-
-  /// 錯誤訊息
   final String? error;
-
-  /// 調音基準音高（Hz），預設 440
   final double referenceA4;
-
-  /// 目前選擇的樂器
   final Instrument selectedInstrument;
 
   const TunerState({
@@ -60,11 +51,16 @@ class TunerNotifier extends StateNotifier<TunerState> {
   final _recorder = AudioRecorder();
   final _pitchDetector = PitchDetector(
     audioSampleRate: PitchDetector.DEFAULT_SAMPLE_RATE.toDouble(),
-    bufferSize: PitchDetector.DEFAULT_BUFFER_SIZE,
+    bufferSize: 4096,
   );
   StreamSubscription? _audioSubscription;
 
-  /// 開始偵測音高
+  /// 連續沒有偵測到音高的次數
+  int _noSignalCount = 0;
+
+  /// 連續幾次沒偵測到才清空顯示（避免短暫中斷造成閃爍）
+  static const _noSignalThreshold = 8;
+
   Future<void> startListening() async {
     final status = await Permission.microphone.request();
     if (!status.isGranted) {
@@ -88,7 +84,8 @@ class TunerNotifier extends StateNotifier<TunerState> {
 
     final audioSampleBufferedStream = bufferedListStream(
       recordStream.map((event) => event.toList()),
-      PitchDetector.DEFAULT_BUFFER_SIZE * 2,
+      // bufferSize 加大，低頻偵測更準確
+      4096 * 2,
     );
 
     _audioSubscription = audioSampleBufferedStream.listen((audioSample) async {
@@ -99,21 +96,25 @@ class TunerNotifier extends StateNotifier<TunerState> {
 
       if (!mounted) return;
 
-      if (result.pitched) {
+      // probability > 0.9 才視為可靠的音高偵測
+      if (result.pitched && result.probability > 0.9) {
+        _noSignalCount = 0;
         final pitchInfo = MusicUtils.frequencyToPitch(
           result.pitch,
           a4Reference: state.referenceA4,
-          // 套用目前選擇的樂器移調
           transposeSteps: state.selectedInstrument.transposeSteps,
         );
         state = state.copyWith(pitchInfo: pitchInfo);
       } else {
-        state = state.copyWith(clearPitch: true);
+        _noSignalCount++;
+        // 連續 8 次沒偵測到才清空，避免短暫中斷閃爍
+        if (_noSignalCount >= _noSignalThreshold) {
+          state = state.copyWith(clearPitch: true);
+        }
       }
     });
   }
 
-  /// 停止偵測音高
   Future<void> stopListening() async {
     await _audioSubscription?.cancel();
     _audioSubscription = null;
@@ -123,14 +124,12 @@ class TunerNotifier extends StateNotifier<TunerState> {
     }
   }
 
-  /// 更新調音基準音高
   void setReferenceA4(double pitch) {
     if (mounted) {
       state = state.copyWith(referenceA4: pitch);
     }
   }
 
-  /// 更新選擇的樂器
   void setInstrument(Instrument instrument) {
     if (mounted) {
       state = state.copyWith(
@@ -148,7 +147,6 @@ class TunerNotifier extends StateNotifier<TunerState> {
   }
 }
 
-/// 調音器 Provider
 final tunerProvider =
     StateNotifierProvider<TunerNotifier, TunerState>((ref) {
   return TunerNotifier();
