@@ -1,9 +1,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../shared/theme/app_colors.dart';
 
-/// 底部導覽列（只有 icon，無文字）
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -15,32 +13,22 @@ class AppBottomNav extends StatelessWidget {
   });
 
   static const _items = [
-    BottomNavigationBarItem(
-      icon: Icon(Icons.tune),
-      label: '',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.mic),
-      label: '',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.analytics_outlined),
-      label: '',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.calendar_month_outlined),
-      label: '',
-    ),
+    BottomNavigationBarItem(icon: Icon(Icons.tune), label: ''),
+    BottomNavigationBarItem(icon: Icon(Icons.mic), label: ''),
+    BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: ''),
+    BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: ''),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       height: 48,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: AppColors.surfaceLight,
+            color: cs.surfaceContainerHighest,
             width: 1,
           ),
         ),

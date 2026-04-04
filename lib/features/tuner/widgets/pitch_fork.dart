@@ -3,12 +3,8 @@ library;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import '../../../shared/theme/app_colors.dart';
 
 /// 音叉 Widget - 六角蜂巢排列
-/// 排0（5）：C  C#  D  D#  E
-/// 排1（6）：B  -  [oct]  +  sustain  F
-/// 排2（5）：A#  A  G#  G  F#
 class PitchFork extends StatefulWidget {
   final double referenceA4;
 
@@ -65,12 +61,11 @@ class _PitchForkState extends State<PitchFork> {
   }
 
   Future<void> _onNoteDown(String note) async {
-    // Sustain 模式下：已按下的音再按就停止
     if (_sustainOn && _activeHandles.containsKey(note)) {
       final handle = _activeHandles[note];
       if (handle != null) {
         try { await SoLoud.instance.stop(handle); } catch (_) {}
-      }    
+      }
       setState(() => _activeHandles.remove(note));
       return;
     }
@@ -86,7 +81,6 @@ class _PitchForkState extends State<PitchFork> {
   }
 
   Future<void> _onNoteUp(String note) async {
-    // Sustain 開啟時放開不停止
     if (_sustainOn) return;
     final handle = _activeHandles[note];
     if (handle == null) return;
@@ -94,10 +88,8 @@ class _PitchForkState extends State<PitchFork> {
     setState(() => _activeHandles.remove(note));
   }
 
-  /// 切換 Sustain
   Future<void> _toggleSustain() async {
     if (_sustainOn) {
-      // 關閉：停止所有持續的音
       for (final note in _activeHandles.keys.toList()) {
         final handle = _activeHandles[note];
         if (handle != null) {
@@ -161,12 +153,13 @@ class _PitchForkState extends State<PitchFork> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
 
-        // 按鍵縮小（0.75），但整體區塊不變
         final hexR = (w / 6 / 2) * 0.68;
         final hexW = hexR * math.sqrt(3);
         final hexH = hexR * 2;
@@ -179,40 +172,33 @@ class _PitchForkState extends State<PitchFork> {
         final y1 = startY + rowStep;
         final y2 = startY + rowStep * 2;
 
-        // 排0和排2：5個，置中
         final totalW5 = colStep * 4 + hexW;
         final x0Start = (w - totalW5) / 2 + hexW / 2;
-
-        // 排1：6個，置中
         final totalW6 = colStep * 5 + hexW;
         final x1Start = (w - totalW6) / 2 + hexW / 2;
 
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Stack(
             children: [
-              // ── 排0：C C# D D# E ──────────────────
+              // 排0：C C# D D# E
               ..._row0.asMap().entries.map((e) {
                 final note = e.value;
                 final x = x0Start + e.key * colStep;
                 return _HexNote(
-                  note: note,
-                  x: x, y: y0, hexR: hexR,
+                  note: note, x: x, y: y0, hexR: hexR,
                   isPressed: _activeHandles.containsKey(note),
                   onDown: () => _onNoteDown(note),
                   onUp: () => _onNoteUp(note),
                 );
               }),
 
-              // ── 排1：B  -  [oct]  +  sustain  F ──
-
               // B
               _HexNote(
-                note: 'B',
-                x: x1Start, y: y1, hexR: hexR,
+                note: 'B', x: x1Start, y: y1, hexR: hexR,
                 isPressed: _activeHandles.containsKey('B'),
                 onDown: () => _onNoteDown('B'),
                 onUp: () => _onNoteUp('B'),
@@ -223,19 +209,14 @@ class _PitchForkState extends State<PitchFork> {
                 left: x1Start + colStep - hexW / 2,
                 top: y1 - hexH / 2,
                 child: _HexControl(
-                  hexR: hexR,
-                  isActive: false,
+                  hexR: hexR, isActive: false,
                   child: Listener(
                     onPointerDown: (_) => _changeOctave(-1),
-                    child: const Center(
-                      child: Text(
-                        '−',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
+                    child: Center(
+                      child: Text('−', style: TextStyle(
+                        color: cs.onSurfaceVariant, fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                      )),
                     ),
                   ),
                 ),
@@ -246,27 +227,18 @@ class _PitchForkState extends State<PitchFork> {
                 left: x1Start + colStep * 2 - hexW / 2,
                 top: y1 - hexH / 2,
                 child: _HexControl(
-                  hexR: hexR,
-                  isActive: false,
+                  hexR: hexR, isActive: false,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          '$_selectedOctave',
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const Text(
-                          'oct',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 8,
-                          ),
-                        ),
+                        Text('$_selectedOctave', style: TextStyle(
+                          color: cs.onSurface, fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        )),
+                        Text('oct', style: TextStyle(
+                          color: cs.onSurfaceVariant, fontSize: 8,
+                        )),
                       ],
                     ),
                   ),
@@ -278,31 +250,25 @@ class _PitchForkState extends State<PitchFork> {
                 left: x1Start + colStep * 3 - hexW / 2,
                 top: y1 - hexH / 2,
                 child: _HexControl(
-                  hexR: hexR,
-                  isActive: false,
+                  hexR: hexR, isActive: false,
                   child: Listener(
                     onPointerDown: (_) => _changeOctave(1),
-                    child: const Center(
-                      child: Text(
-                        '+',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
+                    child: Center(
+                      child: Text('+', style: TextStyle(
+                        color: cs.onSurfaceVariant, fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                      )),
                     ),
                   ),
                 ),
               ),
 
-              // Sustain 按鈕（+ 跟 F 之間）
+              // Sustain
               Positioned(
                 left: x1Start + colStep * 4 - hexW / 2,
                 top: y1 - hexH / 2,
                 child: _HexControl(
-                  hexR: hexR,
-                  isActive: _sustainOn,
+                  hexR: hexR, isActive: _sustainOn,
                   child: GestureDetector(
                     onTap: _toggleSustain,
                     child: Center(
@@ -312,19 +278,12 @@ class _PitchForkState extends State<PitchFork> {
                           Icon(
                             _sustainOn ? Icons.lock : Icons.lock_open,
                             size: hexR * 0.55,
-                            color: _sustainOn
-                                ? Colors.white
-                                : AppColors.textSecondary,
+                            color: _sustainOn ? Colors.white : cs.onSurfaceVariant,
                           ),
-                          Text(
-                            'sustain',
-                            style: TextStyle(
-                              color: _sustainOn
-                                  ? Colors.white
-                                  : AppColors.textSecondary,
-                              fontSize: 7,
-                            ),
-                          ),
+                          Text('sustain', style: TextStyle(
+                            color: _sustainOn ? Colors.white : cs.onSurfaceVariant,
+                            fontSize: 7,
+                          )),
                         ],
                       ),
                     ),
@@ -332,22 +291,20 @@ class _PitchForkState extends State<PitchFork> {
                 ),
               ),
 
-              // F（最右）
+              // F
               _HexNote(
-                note: 'F',
-                x: x1Start + colStep * 5, y: y1, hexR: hexR,
+                note: 'F', x: x1Start + colStep * 5, y: y1, hexR: hexR,
                 isPressed: _activeHandles.containsKey('F'),
                 onDown: () => _onNoteDown('F'),
                 onUp: () => _onNoteUp('F'),
               ),
 
-              // ── 排2：A# A G# G F# ─────────────────
+              // 排2：A# A G# G F#
               ..._row2.asMap().entries.map((e) {
                 final note = e.value;
                 final x = x0Start + e.key * colStep;
                 return _HexNote(
-                  note: note,
-                  x: x, y: y2, hexR: hexR,
+                  note: note, x: x, y: y2, hexR: hexR,
                   isPressed: _activeHandles.containsKey(note),
                   onDown: () => _onNoteDown(note),
                   onUp: () => _onNoteUp(note),
@@ -372,17 +329,14 @@ class _HexNote extends StatelessWidget {
   final VoidCallback onUp;
 
   const _HexNote({
-    required this.note,
-    required this.x,
-    required this.y,
-    required this.hexR,
-    required this.isPressed,
-    required this.onDown,
-    required this.onUp,
+    required this.note, required this.x, required this.y,
+    required this.hexR, required this.isPressed,
+    required this.onDown, required this.onUp,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final hexW = hexR * math.sqrt(3);
     final hexH = hexR * 2;
     final isSharp = note.contains('#');
@@ -402,6 +356,10 @@ class _HexNote extends StatelessWidget {
             painter: _HexPainter(
               isPressed: isPressed,
               isSharp: isSharp,
+              pressedColor: cs.primary,
+              sharpColor: cs.surfaceContainerHighest,
+              normalColor: cs.surface,
+              borderColor: isPressed ? cs.primary : cs.surfaceContainerHighest,
             ),
             child: Center(
               child: Text(
@@ -410,8 +368,8 @@ class _HexNote extends StatelessWidget {
                   color: isPressed
                       ? Colors.white
                       : isSharp
-                          ? AppColors.textSecondary
-                          : AppColors.textPrimary,
+                          ? cs.onSurfaceVariant
+                          : cs.onSurface,
                   fontSize: hexR * 0.45,
                   fontWeight: FontWeight.w600,
                 ),
@@ -431,13 +389,12 @@ class _HexControl extends StatelessWidget {
   final Widget child;
 
   const _HexControl({
-    required this.hexR,
-    required this.isActive,
-    required this.child,
+    required this.hexR, required this.isActive, required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final hexW = hexR * math.sqrt(3);
     final hexH = hexR * 2;
 
@@ -445,7 +402,14 @@ class _HexControl extends StatelessWidget {
       width: hexW,
       height: hexH,
       child: CustomPaint(
-        painter: _HexPainter(isPressed: isActive, isSharp: !isActive),
+        painter: _HexPainter(
+          isPressed: isActive,
+          isSharp: !isActive,
+          pressedColor: cs.primary,
+          sharpColor: cs.surfaceContainerHighest,
+          normalColor: cs.surface,
+          borderColor: isActive ? cs.primary : cs.surfaceContainerHighest,
+        ),
         child: child,
       ),
     );
@@ -456,8 +420,19 @@ class _HexControl extends StatelessWidget {
 class _HexPainter extends CustomPainter {
   final bool isPressed;
   final bool isSharp;
+  final Color pressedColor;
+  final Color sharpColor;
+  final Color normalColor;
+  final Color borderColor;
 
-  _HexPainter({required this.isPressed, required this.isSharp});
+  _HexPainter({
+    required this.isPressed,
+    required this.isSharp,
+    required this.pressedColor,
+    required this.sharpColor,
+    required this.normalColor,
+    required this.borderColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -480,18 +455,13 @@ class _HexPainter extends CustomPainter {
 
     canvas.drawPath(
       path,
-      Paint()
-        ..color = isPressed
-            ? AppColors.accent1
-            : isSharp
-                ? AppColors.surfaceLight
-                : AppColors.background,
+      Paint()..color = isPressed ? pressedColor : isSharp ? sharpColor : normalColor,
     );
 
     canvas.drawPath(
       path,
       Paint()
-        ..color = isPressed ? AppColors.accent1 : AppColors.surfaceLight
+        ..color = borderColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = isPressed ? 2 : 1,
     );

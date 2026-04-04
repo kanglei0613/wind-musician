@@ -3,10 +3,10 @@ library;
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import '../../../shared/theme/app_colors.dart';
 import '../../../shared/constants/app_constants.dart';
+import '../../../shared/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
-/// 段落資料
 class _Section {
   int numerator;
   int denominator;
@@ -25,7 +25,6 @@ class _Section {
       );
 }
 
-/// 節拍器 Widget
 class Metronome extends StatefulWidget {
   const Metronome({super.key});
 
@@ -88,7 +87,6 @@ class _MetronomeState extends State<Metronome>
         WaveForm.sin, false, 1.0, 0.0,
       );
       SoLoud.instance.setWaveformFreq(_strongBeat!, 880);
-
       _weakBeat = await SoLoud.instance.loadWaveform(
         WaveForm.sin, false, 1.0, 0.0,
       );
@@ -131,31 +129,30 @@ class _MetronomeState extends State<Metronome>
 
   void _showBpmDialog(BuildContext context) {
     final controller = TextEditingController(text: '$_bpm');
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          '輸入 BPM',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-          ),
+        backgroundColor: cs.surface,
+        title: Text(
+          l.metronomeInputBpm,
+          style: TextStyle(color: cs.onSurface, fontSize: 16),
         ),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           autofocus: true,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: cs.onSurface,
             fontSize: 32,
             fontWeight: FontWeight.w700,
           ),
           textAlign: TextAlign.center,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             border: InputBorder.none,
-            hintText: '60-240',
-            hintStyle: TextStyle(color: AppColors.textSecondary),
+            hintText: '20-320',
+            hintStyle: TextStyle(color: cs.onSurfaceVariant),
           ),
           onSubmitted: (value) {
             final bpm = int.tryParse(value);
@@ -166,9 +163,9 @@ class _MetronomeState extends State<Metronome>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '取消',
-              style: TextStyle(color: AppColors.textSecondary),
+            child: Text(
+              l.tunerCancel,
+              style: TextStyle(color: cs.onSurfaceVariant),
             ),
           ),
           TextButton(
@@ -177,9 +174,9 @@ class _MetronomeState extends State<Metronome>
               if (bpm != null) _adjustBpm(bpm - _bpm);
               Navigator.pop(ctx);
             },
-            child: const Text(
-              '確定',
-              style: TextStyle(color: AppColors.accent1),
+            child: Text(
+              l.tunerDone,
+              style: TextStyle(color: cs.primary),
             ),
           ),
         ],
@@ -190,7 +187,7 @@ class _MetronomeState extends State<Metronome>
   void _start() {
     setState(() {
       _isPlaying = true;
-      _currentBeat = -1; // 從 -1 開始，第一拍打出來才是強拍
+      _currentBeat = -1;
       _currentSectionIndex = 0;
       _currentMeasure = 0;
       _sectionFlash = false;
@@ -226,13 +223,11 @@ class _MetronomeState extends State<Metronome>
   void _onBeat() {
     final nextBeat = (_currentBeat + 1) % _activeNumerator;
     final isNewMeasure = nextBeat == 0 && _currentBeat != -1;
-
     setState(() => _currentBeat = nextBeat);
 
     if (isNewMeasure && _sectionMode) {
       final section = _sections[_currentSectionIndex];
       final nextMeasure = _currentMeasure + 1;
-
       if (nextMeasure >= section.measures) {
         final nextSection = (_currentSectionIndex + 1) % _sections.length;
         setState(() {
@@ -255,9 +250,7 @@ class _MetronomeState extends State<Metronome>
         SoLoud.instance.play(source, volume: isDown ? 0.8 : 0.5).then((h) {
           Future.delayed(const Duration(milliseconds: 60), () {
             try {
-              SoLoud.instance.fadeVolume(
-                h, 0, const Duration(milliseconds: 40),
-              );
+              SoLoud.instance.fadeVolume(h, 0, const Duration(milliseconds: 40));
               Future.delayed(const Duration(milliseconds: 50), () {
                 try { SoLoud.instance.stop(h); } catch (_) {}
               });
@@ -277,7 +270,6 @@ class _MetronomeState extends State<Metronome>
   void _showSectionSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -312,16 +304,18 @@ class _MetronomeState extends State<Metronome>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 第一行：速度 + 拍號 + 播放 + 段落設定 ─
           Row(
             children: [
               _BpmControl(
@@ -357,7 +351,6 @@ class _MetronomeState extends State<Metronome>
 
               const Spacer(),
 
-              // 播放按鈕
               GestureDetector(
                 onTap: _toggle,
                 child: AnimatedContainer(
@@ -368,27 +361,22 @@ class _MetronomeState extends State<Metronome>
                     shape: BoxShape.circle,
                     color: _isPlaying
                         ? AppColors.tunerSharp.withAlpha(30)
-                        : AppColors.accent1.withAlpha(30),
+                        : cs.primary.withAlpha(30),
                     border: Border.all(
-                      color: _isPlaying
-                          ? AppColors.tunerSharp
-                          : AppColors.accent1,
+                      color: _isPlaying ? AppColors.tunerSharp : cs.primary,
                       width: 2,
                     ),
                   ),
                   child: Icon(
                     _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
                     size: 22,
-                    color: _isPlaying
-                        ? AppColors.tunerSharp
-                        : AppColors.accent1,
+                    color: _isPlaying ? AppColors.tunerSharp : cs.primary,
                   ),
                 ),
               ),
 
               const SizedBox(width: 8),
 
-              // 段落設定按鈕
               GestureDetector(
                 onTap: _showSectionSheet,
                 child: Container(
@@ -396,28 +384,23 @@ class _MetronomeState extends State<Metronome>
                   height: 34,
                   decoration: BoxDecoration(
                     color: _sectionMode
-                        ? AppColors.accent1.withAlpha(40)
-                        : AppColors.surfaceLight,
+                        ? cs.primary.withAlpha(40)
+                        : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _sectionMode
-                          ? AppColors.accent1
-                          : Colors.transparent,
+                      color: _sectionMode ? cs.primary : Colors.transparent,
                     ),
                   ),
                   child: Icon(
                     Icons.segment,
                     size: 16,
-                    color: _sectionMode
-                        ? AppColors.accent1
-                        : AppColors.textSecondary,
+                    color: _sectionMode ? cs.primary : cs.onSurfaceVariant,
                   ),
                 ),
               ),
             ],
           ),
 
-          // ── 進度顯示（段落模式播放中才顯示）────────
           if (_sectionMode && _isPlaying) ...[
             const SizedBox(height: 4),
             AnimatedContainer(
@@ -425,16 +408,14 @@ class _MetronomeState extends State<Metronome>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               decoration: BoxDecoration(
                 color: _sectionFlash
-                    ? AppColors.accent1.withAlpha(60)
+                    ? cs.primary.withAlpha(60)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                '段落 ${_currentSectionIndex + 1}/${_sections.length} · 第 ${_currentMeasure + 1} 小節',
+                '${l.metronomeSectionLabel} ${_currentSectionIndex + 1}/${_sections.length} · ${_currentMeasure + 1} ${l.metronomeMeasure}',
                 style: TextStyle(
-                  color: _sectionFlash
-                      ? AppColors.accent1
-                      : AppColors.textSecondary,
+                  color: _sectionFlash ? cs.primary : cs.onSurfaceVariant,
                   fontSize: 11,
                   fontWeight: _sectionFlash
                       ? FontWeight.w600
@@ -446,7 +427,6 @@ class _MetronomeState extends State<Metronome>
 
           const SizedBox(height: 4),
 
-          // ── 節拍指示燈 ────────────────────────────
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -469,12 +449,12 @@ class _MetronomeState extends State<Metronome>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: _sectionFlash
-                              ? AppColors.accent1
+                              ? cs.primary
                               : isActive
                                   ? (isDownBeat
                                       ? AppColors.tunerSharp
-                                      : AppColors.accent1)
-                                  : AppColors.surfaceLight,
+                                      : cs.primary)
+                                  : cs.surfaceContainerHighest,
                         ),
                       ),
                     );
@@ -489,8 +469,6 @@ class _MetronomeState extends State<Metronome>
   }
 }
 
-// ── 段落模式拍號顯示 ─────────────────────────────
-
 class _SectionTimeDisplay extends StatelessWidget {
   final _Section section;
   final int index;
@@ -504,21 +482,23 @@ class _SectionTimeDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           '${section.numerator}/${section.denominator}',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
         Text(
-          '×${section.measures} 小節',
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          '×${section.measures} ${l.metronomeMeasure}',
+          style: TextStyle(
+            color: cs.onSurfaceVariant,
             fontSize: 9,
           ),
         ),
@@ -526,8 +506,6 @@ class _SectionTimeDisplay extends StatelessWidget {
     );
   }
 }
-
-// ── BPM 控制 ─────────────────────────────────────
 
 class _BpmControl extends StatelessWidget {
   final int bpm;
@@ -546,6 +524,7 @@ class _BpmControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -555,8 +534,6 @@ class _BpmControl extends StatelessWidget {
           onLongPressStart: () => onLongPressStart(-1),
           onLongPressEnd: onLongPressEnd,
         ),
-
-        // BPM 數字可點擊輸入
         GestureDetector(
           onTap: onTapBpm,
           child: SizedBox(
@@ -565,17 +542,17 @@ class _BpmControl extends StatelessWidget {
               children: [
                 Text(
                   '$bpm',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const Text(
+                Text(
                   'BPM',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: cs.onSurfaceVariant,
                     fontSize: 9,
                   ),
                 ),
@@ -583,7 +560,6 @@ class _BpmControl extends StatelessWidget {
             ),
           ),
         ),
-
         _PressButton(
           label: '+',
           onTap: () => onAdjust(1),
@@ -610,6 +586,7 @@ class _PressButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       onLongPressStart: (_) => onLongPressStart(),
@@ -618,14 +595,14 @@ class _PressButton extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
           child: Text(
             label,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -635,8 +612,6 @@ class _PressButton extends StatelessWidget {
     );
   }
 }
-
-// ── 拍號選擇 ─────────────────────────────────────
 
 class _TimeSignature extends StatelessWidget {
   final int numerator;
@@ -653,32 +628,23 @@ class _TimeSignature extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ScrollPicker(
-          value: numerator,
-          min: 1,
-          max: 32,
-          onChanged: onNumeratorChanged,
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6),
+        _ScrollPicker(value: numerator, min: 1, max: 32, onChanged: onNumeratorChanged),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Text(
             '/',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: cs.onSurfaceVariant,
               fontSize: 22,
               fontWeight: FontWeight.w300,
             ),
           ),
         ),
-        _ScrollPicker(
-          value: denominator,
-          min: 1,
-          max: 32,
-          onChanged: onDenominatorChanged,
-        ),
+        _ScrollPicker(value: denominator, min: 1, max: 32, onChanged: onDenominatorChanged),
       ],
     );
   }
@@ -707,9 +673,7 @@ class _ScrollPickerState extends State<_ScrollPicker> {
   @override
   void initState() {
     super.initState();
-    _controller = FixedExtentScrollController(
-      initialItem: widget.value - widget.min,
-    );
+    _controller = FixedExtentScrollController(initialItem: widget.value - widget.min);
   }
 
   @override
@@ -728,6 +692,7 @@ class _ScrollPickerState extends State<_ScrollPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: 36,
       height: 60,
@@ -747,13 +712,9 @@ class _ScrollPickerState extends State<_ScrollPicker> {
               child: Text(
                 '$val',
                 style: TextStyle(
-                  color: isSelected
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
+                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
                   fontSize: isSelected ? 20 : 14,
-                  fontWeight: isSelected
-                      ? FontWeight.w700
-                      : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                 ),
               ),
             );
@@ -763,8 +724,6 @@ class _ScrollPickerState extends State<_ScrollPicker> {
     );
   }
 }
-
-// ── 段落設定 BottomSheet ──────────────────────────
 
 class _SectionSheet extends StatefulWidget {
   final List<_Section> sections;
@@ -799,6 +758,9 @@ class _SectionSheetState extends State<_SectionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -810,10 +772,10 @@ class _SectionSheetState extends State<_SectionSheet> {
           children: [
             Row(
               children: [
-                const Text(
-                  '段落練習',
+                Text(
+                  l.metronomeSection,
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: cs.onSurface,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -822,11 +784,11 @@ class _SectionSheetState extends State<_SectionSheet> {
                 Switch(
                   value: _sectionMode,
                   onChanged: (v) => setState(() => _sectionMode = v),
-                  thumbColor: WidgetStateProperty.all(AppColors.accent1),
+                  thumbColor: WidgetStateProperty.all(cs.primary),
                   trackColor: WidgetStateProperty.resolveWith((states) =>
                     states.contains(WidgetState.selected)
-                        ? AppColors.accent1.withAlpha(120)
-                        : AppColors.surfaceLight,
+                        ? cs.primary.withAlpha(120)
+                        : cs.surfaceContainerHighest,
                   ),
                 ),
               ],
@@ -845,15 +807,15 @@ class _SectionSheetState extends State<_SectionSheet> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceLight,
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
                       Text(
-                        '段落 ${i + 1}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        '${l.metronomeSectionLabel} ${i + 1}',
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
                           fontSize: 12,
                         ),
                       ),
@@ -864,12 +826,12 @@ class _SectionSheetState extends State<_SectionSheet> {
                         max: 32,
                         onChanged: (v) => setState(() => s.numerator = v),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Text(
                           '/',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: cs.onSurfaceVariant,
                             fontSize: 16,
                           ),
                         ),
@@ -881,13 +843,9 @@ class _SectionSheetState extends State<_SectionSheet> {
                         onChanged: (v) => setState(() => s.denominator = v),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        '×',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('×',
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 14)),
                       const SizedBox(width: 8),
                       _MiniScrollPicker(
                         value: s.measures,
@@ -896,22 +854,16 @@ class _SectionSheetState extends State<_SectionSheet> {
                         onChanged: (v) => setState(() => s.measures = v),
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        '小節',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
+                      Text(l.metronomeMeasure,
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 12)),
                       const Spacer(),
                       if (_sections.length > 1)
                         GestureDetector(
-                          onTap: () => setState(() => _sections.removeAt(i)),
-                          child: const Icon(
-                            Icons.close,
-                            size: 16,
-                            color: AppColors.textSecondary,
-                          ),
+                          onTap: () =>
+                              setState(() => _sections.removeAt(i)),
+                          child: Icon(Icons.close,
+                              size: 16, color: cs.onSurfaceVariant),
                         ),
                     ],
                   ),
@@ -924,32 +876,28 @@ class _SectionSheetState extends State<_SectionSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.surfaceLight),
+                    border: Border.all(color: cs.surfaceContainerHighest),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, size: 14, color: AppColors.textSecondary),
-                      SizedBox(width: 4),
+                      Icon(Icons.add, size: 14, color: cs.onSurfaceVariant),
+                      const SizedBox(width: 4),
                       Text(
-                        '新增段落',
+                        l.metronomeSectionAdd,
                         style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                        ),
+                            color: cs.onSurfaceVariant, fontSize: 13),
                       ),
                     ],
                   ),
                 ),
               ),
             ] else
-              const Text(
-                '開啟段落練習模式，可設定多段不同拍號的練習循環。',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
+              Text(
+                l.metronomeSectionEnable,
+                style:
+                    TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
 
@@ -959,7 +907,7 @@ class _SectionSheetState extends State<_SectionSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent1,
+                  backgroundColor: cs.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -967,7 +915,8 @@ class _SectionSheetState extends State<_SectionSheet> {
                   ),
                 ),
                 onPressed: _save,
-                child: const Text('完成', style: TextStyle(fontSize: 14)),
+                child: Text(l.tunerDone,
+                    style: const TextStyle(fontSize: 14)),
               ),
             ),
           ],
@@ -976,8 +925,6 @@ class _SectionSheetState extends State<_SectionSheet> {
     );
   }
 }
-
-// ── 小型滾輪選擇器 ────────────────────────────────
 
 class _MiniScrollPicker extends StatefulWidget {
   final int value;
@@ -1003,8 +950,7 @@ class _MiniScrollPickerState extends State<_MiniScrollPicker> {
   void initState() {
     super.initState();
     _controller = FixedExtentScrollController(
-      initialItem: widget.value - widget.min,
-    );
+        initialItem: widget.value - widget.min);
   }
 
   @override
@@ -1015,6 +961,7 @@ class _MiniScrollPickerState extends State<_MiniScrollPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: 32,
       height: 48,
@@ -1024,7 +971,8 @@ class _MiniScrollPickerState extends State<_MiniScrollPicker> {
         perspective: 0.003,
         diameterRatio: 1.5,
         physics: const FixedExtentScrollPhysics(),
-        onSelectedItemChanged: (index) => widget.onChanged(widget.min + index),
+        onSelectedItemChanged: (index) =>
+            widget.onChanged(widget.min + index),
         childDelegate: ListWheelChildBuilderDelegate(
           childCount: widget.max - widget.min + 1,
           builder: (context, index) {
@@ -1034,13 +982,10 @@ class _MiniScrollPickerState extends State<_MiniScrollPicker> {
               child: Text(
                 '$val',
                 style: TextStyle(
-                  color: isSelected
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
+                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
                   fontSize: isSelected ? 16 : 12,
-                  fontWeight: isSelected
-                      ? FontWeight.w700
-                      : FontWeight.w400,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w400,
                 ),
               ),
             );

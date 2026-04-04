@@ -1,9 +1,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../../shared/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
-/// 調音器底部控制區
 class TunerControls extends StatefulWidget {
   final double referenceA4;
   final ValueChanged<double> onReferenceChanged;
@@ -22,7 +21,6 @@ class _TunerControlsState extends State<TunerControls> {
   void _showReferenceSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -36,24 +34,26 @@ class _TunerControlsState extends State<TunerControls> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: _showReferenceSheet,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.surfaceLight),
+          border: Border.all(color: cs.surfaceContainerHighest),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.tune, size: 11, color: AppColors.textSecondary),
+            Icon(Icons.tune, size: 11, color: cs.onSurfaceVariant),
             const SizedBox(width: 4),
             Text(
               'A4 = ${widget.referenceA4.toStringAsFixed(0)} Hz',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: cs.onSurfaceVariant,
                 fontSize: 11,
               ),
             ),
@@ -95,15 +95,18 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            '設定基準音高',
+          Text(
+            l.tunerReference,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: cs.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -119,31 +122,27 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
                 onTap: () => _adjust(-1),
                 onLongPress: () => _adjust(-5),
               ),
-
               const SizedBox(width: 32),
-
               Column(
                 children: [
                   Text(
                     _value.toStringAsFixed(0),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontSize: 48,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Hz',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: cs.onSurfaceVariant,
                       fontSize: 14,
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(width: 32),
-
               _AdjustButton(
                 icon: Icons.add,
                 onTap: () => _adjust(1),
@@ -154,10 +153,10 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
           const SizedBox(height: 24),
 
-          const Text(
-            '常用設定',
+          Text(
+            l.tunerReferenceCommon,
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: cs.onSurfaceVariant,
               fontSize: 12,
             ),
           ),
@@ -181,21 +180,17 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.accent1.withAlpha(40)
-                        : AppColors.surfaceLight,
+                        ? cs.primary.withAlpha(40)
+                        : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.accent1
-                          : Colors.transparent,
+                      color: isSelected ? cs.primary : Colors.transparent,
                     ),
                   ),
                   child: Text(
                     '$hz',
                     style: TextStyle(
-                      color: isSelected
-                          ? AppColors.accent1
-                          : AppColors.textPrimary,
+                      color: isSelected ? cs.primary : cs.onSurface,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -211,17 +206,17 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent1,
-                foregroundColor: AppColors.textPrimary,
+                backgroundColor: cs.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                '完成',
-                style: TextStyle(
+              child: Text(
+                l.tunerDone,
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -247,6 +242,7 @@ class _AdjustButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -254,10 +250,10 @@ class _AdjustButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: cs.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: AppColors.textPrimary, size: 20),
+        child: Icon(icon, color: cs.onSurface, size: 20),
       ),
     );
   }

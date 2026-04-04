@@ -2,16 +2,15 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../shared/theme/app_colors.dart';
 import 'tuner_provider.dart';
 import 'widgets/tuner_display.dart';
 import 'widgets/tuner_controls.dart';
 import 'widgets/instrument_selector.dart';
 import 'widgets/metronome.dart';
 import 'widgets/pitch_fork.dart';
+import '../../features/terminology/terminology_page.dart';
+import '../../shared/theme/app_colors.dart';
 
-/// 調音器頁面
-/// 節拍器（固定高度）、調音器（剩餘空間）、音叉（固定高度）
 class TunerPage extends ConsumerStatefulWidget {
   const TunerPage({super.key});
 
@@ -41,20 +40,35 @@ class _TunerPageState extends ConsumerState<TunerPage> {
   @override
   Widget build(BuildContext context) {
     final tunerState = ref.watch(tunerProvider);
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         toolbarHeight: 0,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const TerminologySheet(),
+          );
+        },
+        backgroundColor: cs.primary,
+        mini: true,
+        child: const Icon(
+          Icons.menu_book_rounded,
+          color: Colors.white,
+          size: 18,
+        ),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
             children: [
-              // ── 節拍器（固定高度）────────────────
               const SizedBox(
                 height: 110,
                 child: Metronome(),
@@ -62,18 +76,15 @@ class _TunerPageState extends ConsumerState<TunerPage> {
 
               const SizedBox(height: 6),
 
-              // ── 調音器（剩餘空間）────────────────
               Expanded(
                 child: Column(
                   children: [
-                    // 主顯示區
                     Expanded(
                       child: Center(
                         child: TunerDisplay(state: tunerState),
                       ),
                     ),
 
-                    // 錯誤提示
                     if (tunerState.error != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 4),
@@ -107,7 +118,6 @@ class _TunerPageState extends ConsumerState<TunerPage> {
                         ),
                       ),
 
-                    // 樂器選擇（左）+ 基準音高（右）
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Row(
@@ -138,7 +148,6 @@ class _TunerPageState extends ConsumerState<TunerPage> {
 
               const SizedBox(height: 6),
 
-              // ── 音叉（固定高度）──────────────────
               SizedBox(
                 height: 160,
                 child: PitchFork(referenceA4: tunerState.referenceA4),

@@ -4,9 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/utils/music_utils.dart';
+import '../../../l10n/app_localizations.dart';
 import '../tuner_provider.dart';
 
-/// 調音器主顯示區
 class TunerDisplay extends StatelessWidget {
   final TunerState state;
 
@@ -15,60 +15,57 @@ class TunerDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pitchInfo = state.pitchInfo;
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // 音名 + 八度
         Text(
           pitchInfo?.noteOctave ?? '--',
           style: TextStyle(
             fontSize: 56,
             fontWeight: FontWeight.w700,
-            color: _noteColor,
+            color: _noteColor(cs),
             letterSpacing: -2,
           ),
         ),
 
         const SizedBox(height: 8),
 
-        // 頻率
         Text(
           pitchInfo != null
               ? '${pitchInfo.frequency.toStringAsFixed(1)} Hz'
               : '-- Hz',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w300,
           ),
         ),
 
         const SizedBox(height: 48),
 
-        // 半圓指針
         _TunerNeedle(centsOff: pitchInfo?.centsOff),
 
         const SizedBox(height: 16),
 
-        // 音分偏差數值
         Text(
           pitchInfo != null ? pitchInfo.centsDisplay : '0',
           style: TextStyle(
             fontSize: 16,
-            color: _noteColor,
+            color: _noteColor(cs),
             fontWeight: FontWeight.w500,
           ),
         ),
 
-        // 音準狀態文字（只有偵測到聲音才顯示）
         if (pitchInfo != null) ...[
           const SizedBox(height: 4),
           Text(
-            _statusText(pitchInfo),
-            style: const TextStyle(
+            _statusText(pitchInfo, l),
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: cs.onSurfaceVariant,
             ),
           ),
         ],
@@ -76,21 +73,20 @@ class TunerDisplay extends StatelessWidget {
     );
   }
 
-  Color get _noteColor {
-    if (state.pitchInfo == null) return AppColors.textSecondary;
+  Color _noteColor(ColorScheme cs) {
+    if (state.pitchInfo == null) return cs.onSurfaceVariant;
     if (state.pitchInfo!.isInTune) return AppColors.tunerInTune;
     if (state.pitchInfo!.isSharp) return AppColors.tunerSharp;
     return AppColors.tunerFlat;
   }
 
-  String _statusText(PitchInfo pitchInfo) {
-    if (pitchInfo.isInTune) return '準確';
-    if (pitchInfo.isSharp) return '偏高';
-    return '偏低';
+  String _statusText(PitchInfo pitchInfo, AppLocalizations l) {
+    if (pitchInfo.isInTune) return l.tunerInTune;
+    if (pitchInfo.isSharp) return l.tunerSharp;
+    return l.tunerFlat;
   }
 }
 
-/// 半圓指針元件
 class _TunerNeedle extends StatelessWidget {
   final double? centsOff;
 
@@ -99,6 +95,28 @@ class _TunerNeedle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final angle = ((centsOff ?? 0) / 50).clamp(-1.0, 1.0) * (math.pi / 4);
+    final cs = Theme.of(context).colorScheme;
+
+    // 根據偏差程度動態調整指針顏色亮度
+    Color needleColor;
+    if (centsOff == null) {
+      needleColor = cs.onSurfaceVariant;
+    } else {
+      final abs = centsOff!.abs();
+      if (abs <= 10) {
+        needleColor = AppColors.tunerInTune;
+      } else {
+        // 偏差越大顏色越深（用 primary 色系）
+        final ratio = ((abs - 10) / 40).clamp(0.0, 1.0);
+        needleColor = Color.lerp(cs.primary, cs.primary.withAlpha(255), ratio)!;
+        // 偏高比偏低深
+        if (centsOff! > 10) {
+          needleColor = AppColors.tunerSharp;
+        } else {
+          needleColor = AppColors.tunerFlat;
+        }
+      }
+    }
 
     return SizedBox(
       width: 220,
@@ -106,25 +124,32 @@ class _TunerNeedle extends StatelessWidget {
       child: CustomPaint(
         painter: _NeedlePainter(
           angle: angle,
-          centsOff: centsOff,
+          needleColor: needleColor,
+          arcColor: cs.surfaceContainerHighest,
+          markerColor: cs.onSurfaceVariant.withAlpha(128),
         ),
       ),
     );
   }
 }
 
-/// 指針 CustomPainter
 class _NeedlePainter extends CustomPainter {
   final double angle;
-  final double? centsOff;
+  final Color needleColor;
+  final Color arcColor;
+  final Color markerColor;
 
-  _NeedlePainter({required this.angle, this.centsOff});
+  _NeedlePainter({
+    required this.angle,
+    required this.needleColor,
+    required this.arcColor,
+    required this.markerColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height);
 
-    // 刻度弧線
     canvas.drawArc(
       Rect.fromCenter(
         center: center,
@@ -135,33 +160,19 @@ class _NeedlePainter extends CustomPainter {
       math.pi,
       false,
       Paint()
-        ..color = AppColors.surfaceLight
+        ..color = arcColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
 
-    // 中心標記線
     canvas.drawLine(
       Offset(size.width / 2, size.height - size.width * 0.45),
       Offset(size.width / 2, size.height - size.width * 0.38),
       Paint()
-        ..color = AppColors.textSecondary.withAlpha(128)
+        ..color = markerColor
         ..strokeWidth = 1.5,
     );
 
-    // 指針顏色
-    Color needleColor = AppColors.textSecondary;
-    if (centsOff != null) {
-      if (centsOff!.abs() <= 10) {
-        needleColor = AppColors.tunerInTune;
-      } else if (centsOff! > 10) {
-        needleColor = AppColors.tunerSharp;
-      } else {
-        needleColor = AppColors.tunerFlat;
-      }
-    }
-
-    // 指針
     final needleLength = size.width * 0.42;
     final endX = center.dx + needleLength * math.sin(angle);
     final endY = center.dy - needleLength * math.cos(angle);
@@ -175,15 +186,10 @@ class _NeedlePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // 中心圓點
-    canvas.drawCircle(
-      center,
-      5,
-      Paint()..color = needleColor,
-    );
+    canvas.drawCircle(center, 5, Paint()..color = needleColor);
   }
 
   @override
   bool shouldRepaint(_NeedlePainter oldDelegate) =>
-      oldDelegate.angle != angle || oldDelegate.centsOff != centsOff;
+      oldDelegate.angle != angle || oldDelegate.needleColor != needleColor;
 }

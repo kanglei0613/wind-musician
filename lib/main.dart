@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'app.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 在 App 啟動時初始化 SoLoud
+  await dotenv.load(fileName: '.env');
   await SoLoud.instance.init();
   runApp(
     const ProviderScope(
@@ -13,3 +14,4 @@ void main() async {
     ),
   );
 }
+

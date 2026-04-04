@@ -1,10 +1,9 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../../shared/theme/app_colors.dart';
 import '../../../shared/utils/music_utils.dart';
+import '../../../l10n/app_localizations.dart';
 
-/// 樂器選擇器
 class InstrumentSelector extends StatelessWidget {
   final Instrument selectedInstrument;
   final ValueChanged<Instrument> onSelected;
@@ -18,7 +17,6 @@ class InstrumentSelector extends StatelessWidget {
   void _showSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -35,46 +33,40 @@ class InstrumentSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
+    final localizedName = _localizedName(l, selectedInstrument);
+
     return GestureDetector(
       onTap: () => _showSheet(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.surfaceLight),
+          border: Border.all(color: cs.surfaceContainerHighest),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.music_note,
-              size: 11,
-              color: AppColors.textSecondary,
-            ),
+            Icon(Icons.music_note, size: 11, color: cs.onSurfaceVariant),
             const SizedBox(width: 4),
             Text(
-              selectedInstrument.name,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11,
-              ),
+              localizedName,
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
             ),
             if (selectedInstrument.key != 'C') ...[
               const SizedBox(width: 3),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 1,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppColors.accent1.withAlpha(40),
+                  color: cs.primary.withAlpha(40),
                   borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   selectedInstrument.key,
-                  style: const TextStyle(
-                    color: AppColors.accent1,
+                  style: TextStyle(
+                    color: cs.primary,
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                   ),
@@ -85,6 +77,29 @@ class InstrumentSelector extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// 根據 localizationKey 取得對應語言的樂器名稱
+String _localizedName(AppLocalizations l, Instrument instrument) {
+  switch (instrument.localizationKey) {
+    case 'instrumentConcertPitch': return l.instrumentConcertPitch;
+    case 'instrumentFlute': return l.instrumentFlute;
+    case 'instrumentOboe': return l.instrumentOboe;
+    case 'instrumentBassoon': return l.instrumentBassoon;
+    case 'instrumentTrombone': return l.instrumentTrombone;
+    case 'instrumentTuba': return l.instrumentTuba;
+    case 'instrumentTrumpet': return l.instrumentTrumpet;
+    case 'instrumentClarinet': return l.instrumentClarinet;
+    case 'instrumentTenorSax': return l.instrumentTenorSax;
+    case 'instrumentEuphonium': return l.instrumentEuphonium;
+    case 'instrumentBassClarinet': return l.instrumentBassClarinet;
+    case 'instrumentAltoSax': return l.instrumentAltoSax;
+    case 'instrumentBaritoneSax': return l.instrumentBaritoneSax;
+    case 'instrumentEbClarinet': return l.instrumentEbClarinet;
+    case 'instrumentFrenchHorn': return l.instrumentFrenchHorn;
+    case 'instrumentEnglishHorn': return l.instrumentEnglishHorn;
+    default: return instrument.name;
   }
 }
 
@@ -100,6 +115,8 @@ class _InstrumentSheetContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final grouped = Instruments.grouped;
+    final cs = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
@@ -113,19 +130,19 @@ class _InstrumentSheetContent extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '選擇樂器',
+                l.tunerSelectInstrument,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: cs.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -148,17 +165,17 @@ class _InstrumentSheetContent extends StatelessWidget {
                       ),
                       child: Text(
                         entry.key,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-
                     ...entry.value.map((instrument) {
                       final isSelected =
-                          instrument.name == selectedInstrument.name;
+                          instrument.localizationKey == selectedInstrument.localizationKey;
+                      final name = _localizedName(l, instrument);
 
                       return GestureDetector(
                         onTap: () => onSelected(instrument),
@@ -170,12 +187,12 @@ class _InstrumentSheetContent extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.accent1.withAlpha(30)
-                                : AppColors.surfaceLight,
+                                ? cs.primary.withAlpha(30)
+                                : cs.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.accent1
+                                  ? cs.primary
                                   : Colors.transparent,
                             ),
                           ),
@@ -183,11 +200,11 @@ class _InstrumentSheetContent extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  instrument.name,
+                                  name,
                                   style: TextStyle(
                                     color: isSelected
-                                        ? AppColors.accent1
-                                        : AppColors.textPrimary,
+                                        ? cs.primary
+                                        : cs.onSurface,
                                     fontSize: 14,
                                     fontWeight: isSelected
                                         ? FontWeight.w600
@@ -197,16 +214,16 @@ class _InstrumentSheetContent extends StatelessWidget {
                               ),
                               Text(
                                 instrument.nameEn,
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                style: TextStyle(
+                                  color: cs.onSurfaceVariant,
                                   fontSize: 12,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               if (isSelected)
-                                const Icon(
+                                Icon(
                                   Icons.check_circle,
-                                  color: AppColors.accent1,
+                                  color: cs.primary,
                                   size: 18,
                                 ),
                             ],
