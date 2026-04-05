@@ -23,25 +23,28 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: cs.surfaceContainerHighest,
-            width: 1,
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: cs.surfaceContainerHighest,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        iconSize: 20,
-        selectedFontSize: 0,
-        unselectedFontSize: 0,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: _items,
+        child: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: onTap,
+          iconSize: 20,
+          selectedFontSize: 0,
+          unselectedFontSize: 0,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          items: _items,
+        ),
       ),
     );
   }
