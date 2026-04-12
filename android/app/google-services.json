@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "268061403551",
+    "project_id": "wind-musician",
+    "storage_bucket": "wind-musician.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268061403551:android:35d9537c5e30b10d3535aa",
+        "android_client_info": {
+          "package_name": "com.kanglei.wind_musician"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268061403551-6r4rgg4qsh4l6dpdhtchfg3jr45fddco.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kanglei.wind_musician",
+            "certificate_hash": "1d4118cf9ae02af28ae2fa3a17156de8776e9d34"
+          }
+        },
+        {
+          "client_id": "268061403551-hc5hqi1q41cn13ujiv49ru38lj5a0bq1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kanglei.wind_musician",
+            "certificate_hash": "09a82951406ab65dd3b8724f7a632583f94c9846"
+          }
+        },
+        {
+          "client_id": "268061403551-j2906p581sa8m35q3thh6roj809okk7s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5aemyL-rgWHkz70o1FonjOVn7ixxI8w8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268061403551-j2906p581sa8m35q3thh6roj809okk7s.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kanglei.wind-musician"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
