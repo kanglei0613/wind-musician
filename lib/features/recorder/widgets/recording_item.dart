@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/recording.dart';
 import '../recorder_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class RecordingItem extends ConsumerWidget {
   final Recording recording;
@@ -29,6 +30,7 @@ class RecordingItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final playingId = ref.watch(audioPlayerProvider);
     final isPlaying = playingId == recording.id;
     final playerNotifier = ref.read(audioPlayerProvider.notifier);
@@ -83,22 +85,22 @@ class RecordingItem extends ConsumerWidget {
               PopupMenuItem(
                 value: 'rename',
                 child: _menuRow(
-                    Icons.edit, '重新命名', colorScheme.onSurface),
+                    Icons.edit, l.commonRename, colorScheme.onSurface),
               ),
               PopupMenuItem(
                 value: 'move',
-                child: _menuRow(Icons.drive_file_move, '移至資料夾',
+                child: _menuRow(Icons.drive_file_move, l.recorderMoveToFolder,
                     colorScheme.onSurface),
               ),
               PopupMenuItem(
                 value: 'share',
                 child: _menuRow(
-                    Icons.share, '匯出 / 分享', colorScheme.onSurface),
+                    Icons.share, l.recorderExportShare, colorScheme.onSurface),
               ),
               PopupMenuItem(
                 value: 'delete',
                 child: _menuRow(
-                    Icons.delete, '刪除', colorScheme.error),
+                    Icons.delete, l.commonDelete, colorScheme.error),
               ),
             ],
           ),
@@ -200,13 +202,14 @@ class RecordingItem extends ConsumerWidget {
   Future<void> _showRenameDialog(
       BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: recording.name);
 
     final newName = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('重新命名',
+        title: Text(l.recorderRenameTitle,
             style: TextStyle(color: colorScheme.onSurface)),
         content: TextField(
           controller: controller,
@@ -226,13 +229,13 @@ class RecordingItem extends ConsumerWidget {
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(null),
-            child: Text('取消',
+            child: Text(l.commonCancel,
                 style: TextStyle(color: colorScheme.onSurface)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context, rootNavigator: true)
                 .pop(controller.text.trim()),
-            child: Text('確認',
+            child: Text(l.commonConfirm,
                 style: TextStyle(color: colorScheme.primary)),
           ),
         ],
@@ -249,6 +252,7 @@ class RecordingItem extends ConsumerWidget {
   Future<void> _showMoveDialog(
       BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final folders = ref.read(foldersProvider).valueOrNull ?? [];
     String? selectedId = recording.folderId;
 
@@ -257,7 +261,7 @@ class RecordingItem extends ConsumerWidget {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
           backgroundColor: colorScheme.surface,
-          title: Text('移至資料夾',
+          title: Text(l.recorderMoveToFolder,
               style: TextStyle(color: colorScheme.onSurface)),
           content: SingleChildScrollView(
             child: Column(
@@ -277,7 +281,7 @@ class RecordingItem extends ConsumerWidget {
                     size: 20,
                   ),
                   title: Text(
-                    '未分類',
+                    l.recorderUncategorized,
                     style: TextStyle(
                       color: colorScheme.onSurface
                           .withValues(alpha: 0.6),
@@ -315,13 +319,13 @@ class RecordingItem extends ConsumerWidget {
             TextButton(
               onPressed: () =>
                   Navigator.of(context, rootNavigator: true).pop(null),
-              child: Text('取消',
+              child: Text(l.commonCancel,
                   style: TextStyle(color: colorScheme.onSurface)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context, rootNavigator: true)
                   .pop(selectedId ?? ''),
-              child: Text('確認',
+              child: Text(l.commonConfirm,
                   style: TextStyle(color: colorScheme.primary)),
             ),
           ],
@@ -340,28 +344,29 @@ class RecordingItem extends ConsumerWidget {
   Future<void> _showDeleteDialog(
       BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('刪除錄音',
+        title: Text(l.recorderDeleteTitle,
             style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
-          '確定要刪除「${recording.name}」？此操作無法復原。',
+          l.recorderDeleteBody(recording.name),
           style: TextStyle(color: colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(false),
-            child: Text('取消',
+            child: Text(l.commonCancel,
                 style: TextStyle(color: colorScheme.onSurface)),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(true),
-            child: Text('刪除',
+            child: Text(l.commonDelete,
                 style: TextStyle(color: colorScheme.error)),
           ),
         ],

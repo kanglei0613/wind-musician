@@ -62,10 +62,21 @@ class TunerNotifier extends StateNotifier<TunerState> {
   static const _noSignalThreshold = 8;
 
   Future<void> startListening() async {
+    // 避免重複啟動
+    if (state.isListening) return;
+
     final status = await Permission.microphone.request();
     if (!status.isGranted) {
       if (mounted) {
-        state = state.copyWith(error: '需要麥克風權限才能使用調音器');
+        if (status.isPermanentlyDenied) {
+          // 永久拒絕：提示用戶前往設定，並自動開啟設定頁
+          state = state.copyWith(
+            error: '麥克風權限已被永久拒絕，請前往設定 → 隱私權 → 麥克風，開啟 Wind Musician 的存取權限。',
+          );
+          await openAppSettings();
+        } else {
+          state = state.copyWith(error: '需要麥克風權限才能使用調音器');
+        }
       }
       return;
     }
@@ -88,31 +99,44 @@ class TunerNotifier extends StateNotifier<TunerState> {
       4096 * 2,
     );
 
-    _audioSubscription = audioSampleBufferedStream.listen((audioSample) async {
-      if (!mounted) return;
+    _audioSubscription = audioSampleBufferedStream.listen(
+      (audioSample) async {
+        if (!mounted) return;
 
-      final intBuffer = Uint8List.fromList(audioSample);
-      final result = await _pitchDetector.getPitchFromIntBuffer(intBuffer);
+        final intBuffer = Uint8List.fromList(audioSample);
+        final result = await _pitchDetector.getPitchFromIntBuffer(intBuffer);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      // probability > 0.9 才視為可靠的音高偵測
-      if (result.pitched && result.probability > 0.9) {
-        _noSignalCount = 0;
-        final pitchInfo = MusicUtils.frequencyToPitch(
-          result.pitch,
-          a4Reference: state.referenceA4,
-          transposeSteps: state.selectedInstrument.transposeSteps,
-        );
-        state = state.copyWith(pitchInfo: pitchInfo);
-      } else {
-        _noSignalCount++;
-        // 連續 8 次沒偵測到才清空，避免短暫中斷閃爍
-        if (_noSignalCount >= _noSignalThreshold) {
-          state = state.copyWith(clearPitch: true);
+        // probability > 0.9 才視為可靠的音高偵測
+        if (result.pitched && result.probability > 0.9) {
+          _noSignalCount = 0;
+          final pitchInfo = MusicUtils.frequencyToPitch(
+            result.pitch,
+            a4Reference: state.referenceA4,
+            transposeSteps: state.selectedInstrument.transposeSteps,
+          );
+          state = state.copyWith(pitchInfo: pitchInfo);
+        } else {
+          _noSignalCount++;
+          // 連續 8 次沒偵測到才清空，避免短暫中斷閃爍
+          if (_noSignalCount >= _noSignalThreshold) {
+            state = state.copyWith(clearPitch: true);
+          }
         }
-      }
-    });
+      },
+      onError: (Object error) {
+        // stream 出錯時（硬體故障、背景切換等）更新狀態，避免 UI 卡在「聆聽中」
+        if (mounted) {
+          state = state.copyWith(
+            isListening: false,
+            error: '音訊串流發生錯誤，請重新開啟調音器。',
+            clearPitch: true,
+          );
+        }
+      },
+      cancelOnError: true,
+    );
   }
 
   Future<void> stopListening() async {

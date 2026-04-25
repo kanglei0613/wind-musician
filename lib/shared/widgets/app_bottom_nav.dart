@@ -15,8 +15,8 @@ class AppBottomNav extends StatelessWidget {
   static const _items = [
     BottomNavigationBarItem(icon: Icon(Icons.tune), label: ''),
     BottomNavigationBarItem(icon: Icon(Icons.mic), label: ''),
-    BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: ''),
     BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: ''),
+    BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: ''),
   ];
 
   @override

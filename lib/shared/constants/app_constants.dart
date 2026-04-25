@@ -60,8 +60,8 @@ class AppConstants {
   };
 
   // ── 錄音設定 ──────────────────────────────────────
-  /// 最長錄音時間（秒）
-  static const int maxRecordingSeconds = 300;
+  /// 最長錄音時間（秒），超過後自動停止並跳出儲存對話框
+  static const int maxRecordingSeconds = 900;
   /// 音訊格式
   static const String audioFormat = 'aac';
   /// 免費版錄音只存本地，Pro 版可雲端備份

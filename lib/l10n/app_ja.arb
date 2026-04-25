@@ -74,5 +74,98 @@
   "analysisMusicianLabel": "音楽家スタイルを選択",
   "scheduleTitle": "スケジュール",
   "scheduleAdd": "練習を追加",
-  "scheduleNoEvents": "スケジュールがまだありません"
+  "scheduleNoEvents": "スケジュールがまだありません",
+  "drawerNotSignedIn": "未サインイン",
+  "drawerSignOut": "サインアウト",
+  "loginTagline": "練習のすべてを記録しよう",
+  "loginGoogleButton": "Googleでサインイン",
+  "loginAppleButton": "Appleでサインイン",
+  "loginDisplayName": "表示名",
+  "loginPassword": "パスワード",
+  "loginForgotPassword": "パスワードをお忘れですか？",
+  "loginSignUp": "登録",
+  "loginSignIn": "サインイン",
+  "loginAlreadyHaveAccount": "すでにアカウントをお持ちですか？サインイン",
+  "loginNoAccount": "アカウントをお持ちでないですか？登録",
+  "loginBenefitHint": "サインインして記録を同期し、アンサンブルに参加",
+  "loginSkip": "スキップ",
+  "loginFieldRequired": "このフィールドは必須です",
+  "loginInvalidEmail": "有効なメールアドレスを入力してください",
+  "loginPasswordTooShort": "パスワードは6文字以上必要です",
+  "calendarTitle": "カレンダー",
+  "calendarSignInHint": "サインインするとアンサンブルグループが使えます",
+  "calendarAddEntry": "練習記録を追加",
+  "calendarNoEntries": "この日の記録はありません",
+  "calendarTabPersonal": "個人",
+  "calendarTabAll": "全アンサンブル",
+  "calendarEdit": "編集",
+  "calendarDelete": "削除",
+  "calendarUnitMin": "分",
+  "calendarUnitHour": "時間",
+  "communityTitle": "コミュニティ",
+  "communityComingSoonTitle": "コミュニティ機能は近日公開",
+  "communityComingSoonSub": "友達の練習動態・励まし合い・進捗シェア",
+  "communityFriendsTitle": "友達の練習",
+  "communityFriendsSub": "友達が今日何を練習したか見る",
+  "communityLeaderboardTitle": "ランキング",
+  "communityLeaderboardSub": "今週の練習時間ランキング",
+  "communityDevelopingNote": "機能は開発中です、乞うご期待",
+  "commonCancel": "キャンセル",
+  "commonConfirm": "確認",
+  "commonCreate": "作成",
+  "commonSave": "保存",
+  "commonDelete": "削除",
+  "commonRename": "名前変更",
+  "commonUndoWarning": "この操作は元に戻せません。",
+  "recorderSearchHint": "フォルダを検索",
+  "recorderAddFolder": "フォルダを追加",
+  "recorderFolderName": "フォルダ名",
+  "recorderNoResults": "結果が見つかりません",
+  "recorderUncategorized": "未分類",
+  "recorderStatusRecording": "録音中",
+  "recorderStatusIdle": "タップして録音開始",
+  "recorderSaveTitle": "録音を保存",
+  "recorderSaveHint": "録音名を入力",
+  "recorderSaveFolder": "フォルダに保存",
+  "recorderDiscard": "破棄",
+  "recorderFolderCount": "{n} 件",
+  "@recorderFolderCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderFolderEmpty": "このフォルダに録音はありません",
+  "recorderFolderRenameTitle": "フォルダの名前を変更",
+  "recorderFolderDeleteTitle": "フォルダを削除",
+  "recorderFolderDeleteBody": "「{name}」とすべての録音を削除しますか？この操作は元に戻せません。",
+  "@recorderFolderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recorderMoveToFolder": "フォルダに移動",
+  "recorderExportShare": "エクスポート / 共有",
+  "recorderRenameTitle": "名前変更",
+  "recorderDeleteTitle": "録音を削除",
+  "recorderDeleteBody": "「{name}」を削除しますか？この操作は元に戻せません。",
+  "@recorderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metronomeBpmClamped": "BPMを{bpm}に調整しました",
+  "@metronomeBpmClamped": {
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderSaveNameRequired": "録音名を入力してください"
 }

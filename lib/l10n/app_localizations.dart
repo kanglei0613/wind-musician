@@ -551,6 +551,396 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'還沒有行程紀錄'**
   String get scheduleNoEvents;
+
+  /// No description provided for @drawerNotSignedIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'尚未登入'**
+  String get drawerNotSignedIn;
+
+  /// No description provided for @drawerSignOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'登出'**
+  String get drawerSignOut;
+
+  /// No description provided for @loginTagline.
+  ///
+  /// In zh, this message translates to:
+  /// **'記錄你的每一次練習'**
+  String get loginTagline;
+
+  /// No description provided for @loginGoogleButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Google 登入'**
+  String get loginGoogleButton;
+
+  /// No description provided for @loginAppleButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Apple 登入'**
+  String get loginAppleButton;
+
+  /// No description provided for @loginDisplayName.
+  ///
+  /// In zh, this message translates to:
+  /// **'顯示名稱'**
+  String get loginDisplayName;
+
+  /// No description provided for @loginPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'密碼'**
+  String get loginPassword;
+
+  /// No description provided for @loginForgotPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘記密碼？'**
+  String get loginForgotPassword;
+
+  /// No description provided for @loginSignUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'註冊'**
+  String get loginSignUp;
+
+  /// No description provided for @loginSignIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入'**
+  String get loginSignIn;
+
+  /// No description provided for @loginAlreadyHaveAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已有帳號？登入'**
+  String get loginAlreadyHaveAccount;
+
+  /// No description provided for @loginNoAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'還沒有帳號？註冊'**
+  String get loginNoAccount;
+
+  /// No description provided for @loginBenefitHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入後可同步紀錄、加入樂團'**
+  String get loginBenefitHint;
+
+  /// No description provided for @loginSkip.
+  ///
+  /// In zh, this message translates to:
+  /// **'略過'**
+  String get loginSkip;
+
+  /// No description provided for @loginFieldRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'此欄位為必填'**
+  String get loginFieldRequired;
+
+  /// No description provided for @loginInvalidEmail.
+  ///
+  /// In zh, this message translates to:
+  /// **'請輸入有效的電子郵件'**
+  String get loginInvalidEmail;
+
+  /// No description provided for @loginPasswordTooShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'密碼至少需要 6 個字元'**
+  String get loginPasswordTooShort;
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'行事曆'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarSignInHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入後可使用樂團群組功能'**
+  String get calendarSignInHint;
+
+  /// No description provided for @calendarAddEntry.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增練習紀錄'**
+  String get calendarAddEntry;
+
+  /// No description provided for @calendarNoEntries.
+  ///
+  /// In zh, this message translates to:
+  /// **'這天沒有紀錄'**
+  String get calendarNoEntries;
+
+  /// No description provided for @calendarTabPersonal.
+  ///
+  /// In zh, this message translates to:
+  /// **'個人'**
+  String get calendarTabPersonal;
+
+  /// No description provided for @calendarTabAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部樂團'**
+  String get calendarTabAll;
+
+  /// No description provided for @calendarEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'編輯'**
+  String get calendarEdit;
+
+  /// No description provided for @calendarDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除'**
+  String get calendarDelete;
+
+  /// No description provided for @calendarUnitMin.
+  ///
+  /// In zh, this message translates to:
+  /// **'分鐘'**
+  String get calendarUnitMin;
+
+  /// No description provided for @calendarUnitHour.
+  ///
+  /// In zh, this message translates to:
+  /// **'小時'**
+  String get calendarUnitHour;
+
+  /// No description provided for @communityTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'社群'**
+  String get communityTitle;
+
+  /// No description provided for @communityComingSoonTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'社群功能即將推出'**
+  String get communityComingSoonTitle;
+
+  /// No description provided for @communityComingSoonSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'朋友練習動態、互相督促、分享進度'**
+  String get communityComingSoonSub;
+
+  /// No description provided for @communityFriendsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'朋友的練習'**
+  String get communityFriendsTitle;
+
+  /// No description provided for @communityFriendsSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看朋友今天練了什麼'**
+  String get communityFriendsSub;
+
+  /// No description provided for @communityLeaderboardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'排行榜'**
+  String get communityLeaderboardTitle;
+
+  /// No description provided for @communityLeaderboardSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'本週練習時數排名'**
+  String get communityLeaderboardSub;
+
+  /// No description provided for @communityDevelopingNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能持續開發中，敬請期待'**
+  String get communityDevelopingNote;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get commonCancel;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'確認'**
+  String get commonConfirm;
+
+  /// No description provided for @commonCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'建立'**
+  String get commonCreate;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'儲存'**
+  String get commonSave;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除'**
+  String get commonDelete;
+
+  /// No description provided for @commonRename.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新命名'**
+  String get commonRename;
+
+  /// No description provided for @commonUndoWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'此操作無法復原。'**
+  String get commonUndoWarning;
+
+  /// No description provided for @recorderSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜尋資料夾'**
+  String get recorderSearchHint;
+
+  /// No description provided for @recorderAddFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增資料夾'**
+  String get recorderAddFolder;
+
+  /// No description provided for @recorderFolderName.
+  ///
+  /// In zh, this message translates to:
+  /// **'資料夾名稱'**
+  String get recorderFolderName;
+
+  /// No description provided for @recorderNoResults.
+  ///
+  /// In zh, this message translates to:
+  /// **'找不到相關結果'**
+  String get recorderNoResults;
+
+  /// No description provided for @recorderUncategorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'未分類'**
+  String get recorderUncategorized;
+
+  /// No description provided for @recorderStatusRecording.
+  ///
+  /// In zh, this message translates to:
+  /// **'錄音中'**
+  String get recorderStatusRecording;
+
+  /// No description provided for @recorderStatusIdle.
+  ///
+  /// In zh, this message translates to:
+  /// **'點擊開始錄音'**
+  String get recorderStatusIdle;
+
+  /// No description provided for @recorderSaveTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'儲存錄音'**
+  String get recorderSaveTitle;
+
+  /// No description provided for @recorderSaveHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'輸入錄音名稱'**
+  String get recorderSaveHint;
+
+  /// No description provided for @recorderSaveFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'儲存至資料夾'**
+  String get recorderSaveFolder;
+
+  /// No description provided for @recorderDiscard.
+  ///
+  /// In zh, this message translates to:
+  /// **'捨棄'**
+  String get recorderDiscard;
+
+  /// No description provided for @recorderFolderCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 筆'**
+  String recorderFolderCount(int n);
+
+  /// No description provided for @recorderFolderEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'此資料夾沒有錄音'**
+  String get recorderFolderEmpty;
+
+  /// No description provided for @recorderFolderRenameTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新命名資料夾'**
+  String get recorderFolderRenameTitle;
+
+  /// No description provided for @recorderFolderDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除資料夾'**
+  String get recorderFolderDeleteTitle;
+
+  /// No description provided for @recorderFolderDeleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要刪除「{name}」及其所有錄音？此操作無法復原。'**
+  String recorderFolderDeleteBody(String name);
+
+  /// No description provided for @recorderMoveToFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'移至資料夾'**
+  String get recorderMoveToFolder;
+
+  /// No description provided for @recorderExportShare.
+  ///
+  /// In zh, this message translates to:
+  /// **'匯出 / 分享'**
+  String get recorderExportShare;
+
+  /// No description provided for @recorderRenameTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新命名'**
+  String get recorderRenameTitle;
+
+  /// No description provided for @recorderDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除錄音'**
+  String get recorderDeleteTitle;
+
+  /// No description provided for @recorderDeleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要刪除「{name}」？此操作無法復原。'**
+  String recorderDeleteBody(String name);
+
+  /// No description provided for @metronomeBpmClamped.
+  ///
+  /// In zh, this message translates to:
+  /// **'BPM 已自動調整為 {bpm}'**
+  String metronomeBpmClamped(int bpm);
+
+  /// No description provided for @recorderSaveNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'請輸入錄音名稱'**
+  String get recorderSaveNameRequired;
 }
 
 class _AppLocalizationsDelegate

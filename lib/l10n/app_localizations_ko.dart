@@ -232,4 +232,207 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get scheduleNoEvents => '일정이 없습니다';
+
+  @override
+  String get drawerNotSignedIn => '로그인되지 않음';
+
+  @override
+  String get drawerSignOut => '로그아웃';
+
+  @override
+  String get loginTagline => '모든 연습을 기록하세요';
+
+  @override
+  String get loginGoogleButton => 'Google로 로그인';
+
+  @override
+  String get loginAppleButton => 'Apple로 로그인';
+
+  @override
+  String get loginDisplayName => '표시 이름';
+
+  @override
+  String get loginPassword => '비밀번호';
+
+  @override
+  String get loginForgotPassword => '비밀번호를 잊으셨나요?';
+
+  @override
+  String get loginSignUp => '회원가입';
+
+  @override
+  String get loginSignIn => '로그인';
+
+  @override
+  String get loginAlreadyHaveAccount => '이미 계정이 있으신가요? 로그인';
+
+  @override
+  String get loginNoAccount => '계정이 없으신가요? 회원가입';
+
+  @override
+  String get loginBenefitHint => '로그인하여 기록을 동기화하고 앙상블에 참여하세요';
+
+  @override
+  String get loginSkip => '건너뛰기';
+
+  @override
+  String get loginFieldRequired => '이 필드는 필수입니다';
+
+  @override
+  String get loginInvalidEmail => '유효한 이메일을 입력해주세요';
+
+  @override
+  String get loginPasswordTooShort => '비밀번호는 최소 6자 이상이어야 합니다';
+
+  @override
+  String get calendarTitle => '캘린더';
+
+  @override
+  String get calendarSignInHint => '로그인하면 앙상블 그룹 기능을 사용할 수 있습니다';
+
+  @override
+  String get calendarAddEntry => '연습 기록 추가';
+
+  @override
+  String get calendarNoEntries => '이 날의 기록이 없습니다';
+
+  @override
+  String get calendarTabPersonal => '개인';
+
+  @override
+  String get calendarTabAll => '전체 앙상블';
+
+  @override
+  String get calendarEdit => '편집';
+
+  @override
+  String get calendarDelete => '삭제';
+
+  @override
+  String get calendarUnitMin => '분';
+
+  @override
+  String get calendarUnitHour => '시간';
+
+  @override
+  String get communityTitle => '커뮤니티';
+
+  @override
+  String get communityComingSoonTitle => '커뮤니티 기능 출시 예정';
+
+  @override
+  String get communityComingSoonSub => '친구 연습 현황, 서로 격려, 진도 공유';
+
+  @override
+  String get communityFriendsTitle => '친구의 연습';
+
+  @override
+  String get communityFriendsSub => '친구가 오늘 무엇을 연습했는지 보기';
+
+  @override
+  String get communityLeaderboardTitle => '리더보드';
+
+  @override
+  String get communityLeaderboardSub => '이번 주 연습 시간 순위';
+
+  @override
+  String get communityDevelopingNote => '기능 개발 중입니다, 기대해 주세요';
+
+  @override
+  String get commonCancel => '취소';
+
+  @override
+  String get commonConfirm => '확인';
+
+  @override
+  String get commonCreate => '만들기';
+
+  @override
+  String get commonSave => '저장';
+
+  @override
+  String get commonDelete => '삭제';
+
+  @override
+  String get commonRename => '이름 변경';
+
+  @override
+  String get commonUndoWarning => '이 작업은 취소할 수 없습니다.';
+
+  @override
+  String get recorderSearchHint => '폴더 검색';
+
+  @override
+  String get recorderAddFolder => '폴더 추가';
+
+  @override
+  String get recorderFolderName => '폴더 이름';
+
+  @override
+  String get recorderNoResults => '검색 결과 없음';
+
+  @override
+  String get recorderUncategorized => '미분류';
+
+  @override
+  String get recorderStatusRecording => '녹음 중';
+
+  @override
+  String get recorderStatusIdle => '탭하여 녹음 시작';
+
+  @override
+  String get recorderSaveTitle => '녹음 저장';
+
+  @override
+  String get recorderSaveHint => '녹음 이름 입력';
+
+  @override
+  String get recorderSaveFolder => '폴더에 저장';
+
+  @override
+  String get recorderDiscard => '폐기';
+
+  @override
+  String recorderFolderCount(int n) {
+    return '$n개';
+  }
+
+  @override
+  String get recorderFolderEmpty => '이 폴더에 녹음이 없습니다';
+
+  @override
+  String get recorderFolderRenameTitle => '폴더 이름 변경';
+
+  @override
+  String get recorderFolderDeleteTitle => '폴더 삭제';
+
+  @override
+  String recorderFolderDeleteBody(String name) {
+    return '「$name」과 모든 녹음을 삭제하시겠습니까？이 작업은 취소할 수 없습니다.';
+  }
+
+  @override
+  String get recorderMoveToFolder => '폴더로 이동';
+
+  @override
+  String get recorderExportShare => '내보내기 / 공유';
+
+  @override
+  String get recorderRenameTitle => '이름 변경';
+
+  @override
+  String get recorderDeleteTitle => '녹음 삭제';
+
+  @override
+  String recorderDeleteBody(String name) {
+    return '「$name」을 삭제하시겠습니까？이 작업은 취소할 수 없습니다.';
+  }
+
+  @override
+  String metronomeBpmClamped(int bpm) {
+    return 'BPM이 $bpm으로 조정되었습니다';
+  }
+
+  @override
+  String get recorderSaveNameRequired => '녹음 이름을 입력해주세요';
 }

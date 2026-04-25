@@ -2,7 +2,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../app.dart';
+import '../../features/auth/auth_provider.dart';
+import '../../features/guide/user_guide_page.dart';
+import '../../shared/constants/app_constants.dart';
 import '../../shared/theme/color_mode_provider.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -15,6 +20,10 @@ class AppDrawer extends ConsumerWidget {
     final colorMode = ref.watch(colorModeProvider);
     final cs = Theme.of(context).colorScheme;
     final l = AppLocalizations.of(context)!;
+
+    final authState = ref.watch(authStateProvider);
+    final firebaseUser = authState.valueOrNull;
+    final isSignedIn = firebaseUser != null;
 
     return Drawer(
       child: SafeArea(
@@ -31,41 +40,20 @@ class AppDrawer extends ConsumerWidget {
                   ),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: cs.surfaceContainerHighest,
-                      shape: BoxShape.circle,
+              child: isSignedIn
+                  ? _SignedInHeader(
+                      displayName: firebaseUser.displayName ?? '',
+                      email: firebaseUser.email ?? '',
+                      photoUrl: firebaseUser.photoURL,
+                    )
+                  : _SignedOutHeader(
+                      onSignIn: () {
+                        Navigator.of(context).pop();
+                        context.go('/login');
+                      },
+                      l: l,
+                      cs: cs,
                     ),
-                    child: Icon(
-                      Icons.person_outline,
-                      color: cs.onSurfaceVariant,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l.drawerSignIn,
-                    style: TextStyle(
-                      color: cs.primary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l.drawerSignInDesc,
-                    style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
             ),
 
             Expanded(
@@ -95,7 +83,14 @@ class AppDrawer extends ConsumerWidget {
                       _DrawerItem(
                         icon: Icons.menu_book_outlined,
                         label: l.drawerUserGuide,
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pop(); // 關閉抽屜
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UserGuidePage(),
+                            ),
+                          );
+                        },
                       ),
                       _DrawerItem(
                         icon: Icons.bug_report_outlined,
@@ -107,6 +102,22 @@ class AppDrawer extends ConsumerWidget {
                 ],
               ),
             ),
+
+            if (isSignedIn)
+              ListTile(
+                leading: Icon(Icons.logout, color: cs.error, size: 20),
+                title: Text(
+                  l.drawerSignOut,
+                  style: TextStyle(color: cs.error, fontSize: 14),
+                ),
+                dense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await ref.read(authServiceProvider).signOut();
+                },
+              ),
 
             Padding(
               padding: const EdgeInsets.all(16),
@@ -142,9 +153,12 @@ class AppDrawer extends ConsumerWidget {
       ),
       builder: (_) => _LanguagePicker(
         currentCode: ref.read(localeProvider).languageCode,
-        onSelected: (code) {
+        onSelected: (code) async {
           ref.read(localeProvider.notifier).state = Locale(code);
-          Navigator.pop(context);
+          // 持久化語言選擇，冷啟動時從 SharedPreferences 恢復
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(AppConstants.keyLocale, code);
+          if (context.mounted) Navigator.pop(context);
         },
       ),
     );
@@ -509,6 +523,137 @@ class _LanguagePicker extends StatelessWidget {
           const SizedBox(height: 8),
         ],
       ),
+    );
+  }
+}
+
+// ── Drawer header variants ────────────────────────────────────────────────────
+
+class _SignedInHeader extends StatelessWidget {
+  final String displayName;
+  final String email;
+  final String? photoUrl;
+
+  const _SignedInHeader({
+    required this.displayName,
+    required this.email,
+    required this.photoUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: cs.surfaceContainerHighest,
+          backgroundImage:
+              photoUrl != null ? NetworkImage(photoUrl!) : null,
+          child: photoUrl == null
+              ? Icon(Icons.person, color: cs.onSurfaceVariant, size: 28)
+              : null,
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayName,
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (email.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  email,
+                  style: TextStyle(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SignedOutHeader extends StatelessWidget {
+  final VoidCallback onSignIn;
+  final AppLocalizations l;
+  final ColorScheme cs;
+
+  const _SignedOutHeader({
+    required this.onSignIn,
+    required this.l,
+    required this.cs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.person_outline,
+            color: cs.onSurfaceVariant,
+            size: 28,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l.drawerNotSignedIn,
+                style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            FilledButton.tonal(
+              onPressed: onSignIn,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: Text(l.drawerSignIn, style: const TextStyle(fontSize: 13)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l.drawerSignInDesc,
+          style: TextStyle(
+            color: cs.onSurfaceVariant,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }

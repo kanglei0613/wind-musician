@@ -74,5 +74,98 @@
   "analysisMusicianLabel": "選擇音樂家風格",
   "scheduleTitle": "行程",
   "scheduleAdd": "新增練習",
-  "scheduleNoEvents": "還沒有行程紀錄"
+  "scheduleNoEvents": "還沒有行程紀錄",
+  "drawerNotSignedIn": "尚未登入",
+  "drawerSignOut": "登出",
+  "loginTagline": "記錄你的每一次練習",
+  "loginGoogleButton": "使用 Google 登入",
+  "loginAppleButton": "使用 Apple 登入",
+  "loginDisplayName": "顯示名稱",
+  "loginPassword": "密碼",
+  "loginForgotPassword": "忘記密碼？",
+  "loginSignUp": "註冊",
+  "loginSignIn": "登入",
+  "loginAlreadyHaveAccount": "已有帳號？登入",
+  "loginNoAccount": "還沒有帳號？註冊",
+  "loginBenefitHint": "登入後可同步紀錄、加入樂團",
+  "loginSkip": "略過",
+  "loginFieldRequired": "此欄位為必填",
+  "loginInvalidEmail": "請輸入有效的電子郵件",
+  "loginPasswordTooShort": "密碼至少需要 6 個字元",
+  "calendarTitle": "行事曆",
+  "calendarSignInHint": "登入後可使用樂團群組功能",
+  "calendarAddEntry": "新增練習紀錄",
+  "calendarNoEntries": "這天沒有紀錄",
+  "calendarTabPersonal": "個人",
+  "calendarTabAll": "全部樂團",
+  "calendarEdit": "編輯",
+  "calendarDelete": "刪除",
+  "calendarUnitMin": "分鐘",
+  "calendarUnitHour": "小時",
+  "communityTitle": "社群",
+  "communityComingSoonTitle": "社群功能即將推出",
+  "communityComingSoonSub": "朋友練習動態、互相督促、分享進度",
+  "communityFriendsTitle": "朋友的練習",
+  "communityFriendsSub": "查看朋友今天練了什麼",
+  "communityLeaderboardTitle": "排行榜",
+  "communityLeaderboardSub": "本週練習時數排名",
+  "communityDevelopingNote": "功能持續開發中，敬請期待",
+  "commonCancel": "取消",
+  "commonConfirm": "確認",
+  "commonCreate": "建立",
+  "commonSave": "儲存",
+  "commonDelete": "刪除",
+  "commonRename": "重新命名",
+  "commonUndoWarning": "此操作無法復原。",
+  "recorderSearchHint": "搜尋資料夾",
+  "recorderAddFolder": "新增資料夾",
+  "recorderFolderName": "資料夾名稱",
+  "recorderNoResults": "找不到相關結果",
+  "recorderUncategorized": "未分類",
+  "recorderStatusRecording": "錄音中",
+  "recorderStatusIdle": "點擊開始錄音",
+  "recorderSaveTitle": "儲存錄音",
+  "recorderSaveHint": "輸入錄音名稱",
+  "recorderSaveFolder": "儲存至資料夾",
+  "recorderDiscard": "捨棄",
+  "recorderFolderCount": "{n} 筆",
+  "@recorderFolderCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderFolderEmpty": "此資料夾沒有錄音",
+  "recorderFolderRenameTitle": "重新命名資料夾",
+  "recorderFolderDeleteTitle": "刪除資料夾",
+  "recorderFolderDeleteBody": "確定要刪除「{name}」及其所有錄音？此操作無法復原。",
+  "@recorderFolderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recorderMoveToFolder": "移至資料夾",
+  "recorderExportShare": "匯出 / 分享",
+  "recorderRenameTitle": "重新命名",
+  "recorderDeleteTitle": "刪除錄音",
+  "recorderDeleteBody": "確定要刪除「{name}」？此操作無法復原。",
+  "@recorderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metronomeBpmClamped": "BPM 已自動調整為 {bpm}",
+  "@metronomeBpmClamped": {
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderSaveNameRequired": "請輸入錄音名稱"
 }

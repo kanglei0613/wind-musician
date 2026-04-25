@@ -81,13 +81,23 @@ class _TerminologySheetState extends State<TerminologySheet> {
 
   Future<void> _search(String term) async {
     if (term.trim().isEmpty) return;
+
+    // 取得當前 App 語言，讓術語查詢跟隨 UI 語系
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     setState(() {
       _isLoading = true;
       _hasSearched = true;
       _results = [];
     });
 
-    final results = await TerminologyService.search(term, languageCode: 'en');
+    final results = await TerminologyService.search(
+      term,
+      languageCode: languageCode,
+    );
+
+    // 確認 widget 仍然 mounted 再更新狀態
+    if (!mounted) return;
     setState(() {
       _results = results;
       _isLoading = false;

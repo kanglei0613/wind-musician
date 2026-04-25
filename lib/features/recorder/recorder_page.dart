@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'recorder_provider.dart';
 import 'widgets/recorder_controls.dart';
 import 'widgets/recording_list.dart';
+import '../../l10n/app_localizations.dart';
 
 class RecorderPage extends ConsumerStatefulWidget {
   const RecorderPage({super.key});
@@ -32,6 +33,7 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -63,7 +65,7 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
                     controller: _searchController,
                     style: TextStyle(color: colorScheme.onSurface),
                     decoration: InputDecoration(
-                      hintText: '搜尋資料夾',
+                      hintText: l.recorderSearchHint,
                       hintStyle: TextStyle(
                         color: colorScheme.onSurface
                             .withValues(alpha: 0.4),
@@ -134,7 +136,7 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
                     Icons.create_new_folder_outlined,
                     color: colorScheme.primary,
                   ),
-                  tooltip: '新增資料夾',
+                  tooltip: l.recorderAddFolder,
                 ),
               ],
             ),
@@ -149,20 +151,21 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
 
   Future<void> _showAddFolderDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final controller = TextEditingController();
 
     final name = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('新增資料夾',
+        title: Text(l.recorderAddFolder,
             style: TextStyle(color: colorScheme.onSurface)),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: TextStyle(color: colorScheme.onSurface),
           decoration: InputDecoration(
-            hintText: '資料夾名稱',
+            hintText: l.recorderFolderName,
             hintStyle: TextStyle(
               color: colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -179,13 +182,13 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(null),
-            child: Text('取消',
+            child: Text(l.commonCancel,
                 style: TextStyle(color: colorScheme.onSurface)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context, rootNavigator: true)
                 .pop(controller.text.trim()),
-            child: Text('建立',
+            child: Text(l.commonCreate,
                 style: TextStyle(color: colorScheme.primary)),
           ),
         ],

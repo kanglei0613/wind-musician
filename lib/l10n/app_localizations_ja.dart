@@ -233,4 +233,207 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get scheduleNoEvents => 'スケジュールがまだありません';
+
+  @override
+  String get drawerNotSignedIn => '未サインイン';
+
+  @override
+  String get drawerSignOut => 'サインアウト';
+
+  @override
+  String get loginTagline => '練習のすべてを記録しよう';
+
+  @override
+  String get loginGoogleButton => 'Googleでサインイン';
+
+  @override
+  String get loginAppleButton => 'Appleでサインイン';
+
+  @override
+  String get loginDisplayName => '表示名';
+
+  @override
+  String get loginPassword => 'パスワード';
+
+  @override
+  String get loginForgotPassword => 'パスワードをお忘れですか？';
+
+  @override
+  String get loginSignUp => '登録';
+
+  @override
+  String get loginSignIn => 'サインイン';
+
+  @override
+  String get loginAlreadyHaveAccount => 'すでにアカウントをお持ちですか？サインイン';
+
+  @override
+  String get loginNoAccount => 'アカウントをお持ちでないですか？登録';
+
+  @override
+  String get loginBenefitHint => 'サインインして記録を同期し、アンサンブルに参加';
+
+  @override
+  String get loginSkip => 'スキップ';
+
+  @override
+  String get loginFieldRequired => 'このフィールドは必須です';
+
+  @override
+  String get loginInvalidEmail => '有効なメールアドレスを入力してください';
+
+  @override
+  String get loginPasswordTooShort => 'パスワードは6文字以上必要です';
+
+  @override
+  String get calendarTitle => 'カレンダー';
+
+  @override
+  String get calendarSignInHint => 'サインインするとアンサンブルグループが使えます';
+
+  @override
+  String get calendarAddEntry => '練習記録を追加';
+
+  @override
+  String get calendarNoEntries => 'この日の記録はありません';
+
+  @override
+  String get calendarTabPersonal => '個人';
+
+  @override
+  String get calendarTabAll => '全アンサンブル';
+
+  @override
+  String get calendarEdit => '編集';
+
+  @override
+  String get calendarDelete => '削除';
+
+  @override
+  String get calendarUnitMin => '分';
+
+  @override
+  String get calendarUnitHour => '時間';
+
+  @override
+  String get communityTitle => 'コミュニティ';
+
+  @override
+  String get communityComingSoonTitle => 'コミュニティ機能は近日公開';
+
+  @override
+  String get communityComingSoonSub => '友達の練習動態・励まし合い・進捗シェア';
+
+  @override
+  String get communityFriendsTitle => '友達の練習';
+
+  @override
+  String get communityFriendsSub => '友達が今日何を練習したか見る';
+
+  @override
+  String get communityLeaderboardTitle => 'ランキング';
+
+  @override
+  String get communityLeaderboardSub => '今週の練習時間ランキング';
+
+  @override
+  String get communityDevelopingNote => '機能は開発中です、乞うご期待';
+
+  @override
+  String get commonCancel => 'キャンセル';
+
+  @override
+  String get commonConfirm => '確認';
+
+  @override
+  String get commonCreate => '作成';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get commonDelete => '削除';
+
+  @override
+  String get commonRename => '名前変更';
+
+  @override
+  String get commonUndoWarning => 'この操作は元に戻せません。';
+
+  @override
+  String get recorderSearchHint => 'フォルダを検索';
+
+  @override
+  String get recorderAddFolder => 'フォルダを追加';
+
+  @override
+  String get recorderFolderName => 'フォルダ名';
+
+  @override
+  String get recorderNoResults => '結果が見つかりません';
+
+  @override
+  String get recorderUncategorized => '未分類';
+
+  @override
+  String get recorderStatusRecording => '録音中';
+
+  @override
+  String get recorderStatusIdle => 'タップして録音開始';
+
+  @override
+  String get recorderSaveTitle => '録音を保存';
+
+  @override
+  String get recorderSaveHint => '録音名を入力';
+
+  @override
+  String get recorderSaveFolder => 'フォルダに保存';
+
+  @override
+  String get recorderDiscard => '破棄';
+
+  @override
+  String recorderFolderCount(int n) {
+    return '$n 件';
+  }
+
+  @override
+  String get recorderFolderEmpty => 'このフォルダに録音はありません';
+
+  @override
+  String get recorderFolderRenameTitle => 'フォルダの名前を変更';
+
+  @override
+  String get recorderFolderDeleteTitle => 'フォルダを削除';
+
+  @override
+  String recorderFolderDeleteBody(String name) {
+    return '「$name」とすべての録音を削除しますか？この操作は元に戻せません。';
+  }
+
+  @override
+  String get recorderMoveToFolder => 'フォルダに移動';
+
+  @override
+  String get recorderExportShare => 'エクスポート / 共有';
+
+  @override
+  String get recorderRenameTitle => '名前変更';
+
+  @override
+  String get recorderDeleteTitle => '録音を削除';
+
+  @override
+  String recorderDeleteBody(String name) {
+    return '「$name」を削除しますか？この操作は元に戻せません。';
+  }
+
+  @override
+  String metronomeBpmClamped(int bpm) {
+    return 'BPMを$bpmに調整しました';
+  }
+
+  @override
+  String get recorderSaveNameRequired => '録音名を入力してください';
 }

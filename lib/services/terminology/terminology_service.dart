@@ -1,7 +1,6 @@
 library;
 
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 /// 音樂術語查詢 Service
@@ -10,7 +9,8 @@ class TerminologyService {
   static const _apiUrl = 'https://api.anthropic.com/v1/messages';
   static const _model = 'claude-haiku-4-5-20251001';
 
-  static String get _apiKey => dotenv.env['ANTHROPIC_API_KEY'] ?? '';
+  static const String _apiKey =
+      String.fromEnvironment('ANTHROPIC_API_KEY', defaultValue: '');
 
   /// 查詢音樂術語
   /// [term] 術語或縮寫（例如 ff、rit.、D.C.、pizz.）

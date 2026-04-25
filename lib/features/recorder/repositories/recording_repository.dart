@@ -95,9 +95,12 @@ class RecordingRepository {
 
   Future<void> delete(String id) async {
     final all = await loadAll();
-    final recording = all.firstWhere((r) => r.id == id);
-    final file = File(recording.path);
-    if (await file.exists()) await file.delete();
+    // 用 firstWhereOrNull 避免 id 不存在時 firstWhere 拋出 StateError
+    final recording = all.where((r) => r.id == id).firstOrNull;
+    if (recording != null) {
+      final file = File(recording.path);
+      if (await file.exists()) await file.delete();
+    }
     all.removeWhere((r) => r.id == id);
     await _saveAll(all);
   }

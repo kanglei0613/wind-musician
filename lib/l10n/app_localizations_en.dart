@@ -233,4 +233,208 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scheduleNoEvents => 'No schedule yet';
+
+  @override
+  String get drawerNotSignedIn => 'Not signed in';
+
+  @override
+  String get drawerSignOut => 'Sign Out';
+
+  @override
+  String get loginTagline => 'Record every practice session';
+
+  @override
+  String get loginGoogleButton => 'Sign in with Google';
+
+  @override
+  String get loginAppleButton => 'Sign in with Apple';
+
+  @override
+  String get loginDisplayName => 'Display Name';
+
+  @override
+  String get loginPassword => 'Password';
+
+  @override
+  String get loginForgotPassword => 'Forgot password?';
+
+  @override
+  String get loginSignUp => 'Sign Up';
+
+  @override
+  String get loginSignIn => 'Sign In';
+
+  @override
+  String get loginAlreadyHaveAccount => 'Already have an account? Sign in';
+
+  @override
+  String get loginNoAccount => 'No account? Sign up';
+
+  @override
+  String get loginBenefitHint => 'Sign in to sync records and join ensembles';
+
+  @override
+  String get loginSkip => 'Skip';
+
+  @override
+  String get loginFieldRequired => 'This field is required';
+
+  @override
+  String get loginInvalidEmail => 'Please enter a valid email';
+
+  @override
+  String get loginPasswordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get calendarTitle => 'Calendar';
+
+  @override
+  String get calendarSignInHint => 'Sign in to use ensemble group features';
+
+  @override
+  String get calendarAddEntry => 'Add Practice Record';
+
+  @override
+  String get calendarNoEntries => 'No entries for this day';
+
+  @override
+  String get calendarTabPersonal => 'Personal';
+
+  @override
+  String get calendarTabAll => 'All Ensembles';
+
+  @override
+  String get calendarEdit => 'Edit';
+
+  @override
+  String get calendarDelete => 'Delete';
+
+  @override
+  String get calendarUnitMin => 'min';
+
+  @override
+  String get calendarUnitHour => 'hr';
+
+  @override
+  String get communityTitle => 'Community';
+
+  @override
+  String get communityComingSoonTitle => 'Community Features Coming Soon';
+
+  @override
+  String get communityComingSoonSub =>
+      'Friend updates, motivation, and progress sharing';
+
+  @override
+  String get communityFriendsTitle => 'Friends\' Practice';
+
+  @override
+  String get communityFriendsSub => 'See what friends practiced today';
+
+  @override
+  String get communityLeaderboardTitle => 'Leaderboard';
+
+  @override
+  String get communityLeaderboardSub => 'Weekly practice hours ranking';
+
+  @override
+  String get communityDevelopingNote => 'Features in development, stay tuned';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get commonCreate => 'Create';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonRename => 'Rename';
+
+  @override
+  String get commonUndoWarning => 'This action cannot be undone.';
+
+  @override
+  String get recorderSearchHint => 'Search folders';
+
+  @override
+  String get recorderAddFolder => 'New Folder';
+
+  @override
+  String get recorderFolderName => 'Folder name';
+
+  @override
+  String get recorderNoResults => 'No results found';
+
+  @override
+  String get recorderUncategorized => 'Uncategorized';
+
+  @override
+  String get recorderStatusRecording => 'Recording';
+
+  @override
+  String get recorderStatusIdle => 'Tap to start recording';
+
+  @override
+  String get recorderSaveTitle => 'Save Recording';
+
+  @override
+  String get recorderSaveHint => 'Enter recording name';
+
+  @override
+  String get recorderSaveFolder => 'Save to Folder';
+
+  @override
+  String get recorderDiscard => 'Discard';
+
+  @override
+  String recorderFolderCount(int n) {
+    return '$n items';
+  }
+
+  @override
+  String get recorderFolderEmpty => 'No recordings in this folder';
+
+  @override
+  String get recorderFolderRenameTitle => 'Rename Folder';
+
+  @override
+  String get recorderFolderDeleteTitle => 'Delete Folder';
+
+  @override
+  String recorderFolderDeleteBody(String name) {
+    return 'Delete \"$name\" and all its recordings? This cannot be undone.';
+  }
+
+  @override
+  String get recorderMoveToFolder => 'Move to Folder';
+
+  @override
+  String get recorderExportShare => 'Export / Share';
+
+  @override
+  String get recorderRenameTitle => 'Rename';
+
+  @override
+  String get recorderDeleteTitle => 'Delete Recording';
+
+  @override
+  String recorderDeleteBody(String name) {
+    return 'Delete \"$name\"? This cannot be undone.';
+  }
+
+  @override
+  String metronomeBpmClamped(int bpm) {
+    return 'BPM adjusted to $bpm';
+  }
+
+  @override
+  String get recorderSaveNameRequired => 'Please enter a recording name';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../recorder_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SaveDialog extends ConsumerStatefulWidget {
   const SaveDialog({super.key});
@@ -13,6 +14,7 @@ class SaveDialog extends ConsumerStatefulWidget {
 class _SaveDialogState extends ConsumerState<SaveDialog> {
   final _controller = TextEditingController();
   String? _selectedFolderId;
+  bool _showNameError = false;
 
   @override
   void initState() {
@@ -29,11 +31,12 @@ class _SaveDialogState extends ConsumerState<SaveDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final folders = ref.watch(foldersProvider).valueOrNull ?? [];
 
     return AlertDialog(
       backgroundColor: colorScheme.surface,
-      title: Text('儲存錄音',
+      title: Text(l.recorderSaveTitle,
           style: TextStyle(color: colorScheme.onSurface)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -43,23 +46,33 @@ class _SaveDialogState extends ConsumerState<SaveDialog> {
             controller: _controller,
             autofocus: true,
             style: TextStyle(color: colorScheme.onSurface),
+            onChanged: (_) {
+              // 用戶開始輸入時清除錯誤提示
+              if (_showNameError) setState(() => _showNameError = false);
+            },
             decoration: InputDecoration(
-              hintText: '輸入錄音名稱',
+              hintText: l.recorderSaveHint,
               hintStyle: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.5),
               ),
+              errorText: _showNameError ? l.recorderSaveNameRequired : null,
+              errorStyle: TextStyle(color: colorScheme.error, fontSize: 12),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: colorScheme.primary),
+                borderSide: BorderSide(
+                  color: _showNameError ? colorScheme.error : colorScheme.primary,
+                ),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: colorScheme.primary, width: 2),
+                borderSide: BorderSide(
+                  color: _showNameError ? colorScheme.error : colorScheme.primary,
+                  width: 2,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 20),
           Text(
-            '儲存至資料夾',
+            l.recorderSaveFolder,
             style: TextStyle(
               fontSize: 12,
               color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -85,7 +98,7 @@ class _SaveDialogState extends ConsumerState<SaveDialog> {
                   DropdownMenuItem(
                     value: null,
                     child: Text(
-                      '未分類',
+                      l.recorderUncategorized,
                       style: TextStyle(
                         color: colorScheme.onSurface
                             .withValues(alpha: 0.6),
@@ -111,12 +124,12 @@ class _SaveDialogState extends ConsumerState<SaveDialog> {
         TextButton(
           onPressed: () =>
               Navigator.of(context, rootNavigator: true).pop(null),
-          child: Text('捨棄',
+          child: Text(l.recorderDiscard,
               style: TextStyle(color: colorScheme.error)),
         ),
         TextButton(
           onPressed: () => _submit(context),
-          child: Text('儲存',
+          child: Text(l.commonSave,
               style: TextStyle(color: colorScheme.primary)),
         ),
       ],
@@ -125,7 +138,11 @@ class _SaveDialogState extends ConsumerState<SaveDialog> {
 
   void _submit(BuildContext context) {
     final name = _controller.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      // 顯示錯誤提示，讓用戶知道名稱不能為空
+      setState(() => _showNameError = true);
+      return;
+    }
     Navigator.of(context, rootNavigator: true).pop({
       'name': name,
       'folderId': _selectedFolderId,

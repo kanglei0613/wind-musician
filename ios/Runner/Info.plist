@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- 麥克風使用說明（iOS App Store 審核必填，缺少會直接被拒） -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Wind Musician needs microphone access for the tuner and recording features. / Wind Musician 需要麥克風權限以使用調音器與錄音功能。</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

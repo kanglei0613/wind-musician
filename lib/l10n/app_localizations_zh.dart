@@ -232,4 +232,207 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get scheduleNoEvents => '還沒有行程紀錄';
+
+  @override
+  String get drawerNotSignedIn => '尚未登入';
+
+  @override
+  String get drawerSignOut => '登出';
+
+  @override
+  String get loginTagline => '記錄你的每一次練習';
+
+  @override
+  String get loginGoogleButton => '使用 Google 登入';
+
+  @override
+  String get loginAppleButton => '使用 Apple 登入';
+
+  @override
+  String get loginDisplayName => '顯示名稱';
+
+  @override
+  String get loginPassword => '密碼';
+
+  @override
+  String get loginForgotPassword => '忘記密碼？';
+
+  @override
+  String get loginSignUp => '註冊';
+
+  @override
+  String get loginSignIn => '登入';
+
+  @override
+  String get loginAlreadyHaveAccount => '已有帳號？登入';
+
+  @override
+  String get loginNoAccount => '還沒有帳號？註冊';
+
+  @override
+  String get loginBenefitHint => '登入後可同步紀錄、加入樂團';
+
+  @override
+  String get loginSkip => '略過';
+
+  @override
+  String get loginFieldRequired => '此欄位為必填';
+
+  @override
+  String get loginInvalidEmail => '請輸入有效的電子郵件';
+
+  @override
+  String get loginPasswordTooShort => '密碼至少需要 6 個字元';
+
+  @override
+  String get calendarTitle => '行事曆';
+
+  @override
+  String get calendarSignInHint => '登入後可使用樂團群組功能';
+
+  @override
+  String get calendarAddEntry => '新增練習紀錄';
+
+  @override
+  String get calendarNoEntries => '這天沒有紀錄';
+
+  @override
+  String get calendarTabPersonal => '個人';
+
+  @override
+  String get calendarTabAll => '全部樂團';
+
+  @override
+  String get calendarEdit => '編輯';
+
+  @override
+  String get calendarDelete => '刪除';
+
+  @override
+  String get calendarUnitMin => '分鐘';
+
+  @override
+  String get calendarUnitHour => '小時';
+
+  @override
+  String get communityTitle => '社群';
+
+  @override
+  String get communityComingSoonTitle => '社群功能即將推出';
+
+  @override
+  String get communityComingSoonSub => '朋友練習動態、互相督促、分享進度';
+
+  @override
+  String get communityFriendsTitle => '朋友的練習';
+
+  @override
+  String get communityFriendsSub => '查看朋友今天練了什麼';
+
+  @override
+  String get communityLeaderboardTitle => '排行榜';
+
+  @override
+  String get communityLeaderboardSub => '本週練習時數排名';
+
+  @override
+  String get communityDevelopingNote => '功能持續開發中，敬請期待';
+
+  @override
+  String get commonCancel => '取消';
+
+  @override
+  String get commonConfirm => '確認';
+
+  @override
+  String get commonCreate => '建立';
+
+  @override
+  String get commonSave => '儲存';
+
+  @override
+  String get commonDelete => '刪除';
+
+  @override
+  String get commonRename => '重新命名';
+
+  @override
+  String get commonUndoWarning => '此操作無法復原。';
+
+  @override
+  String get recorderSearchHint => '搜尋資料夾';
+
+  @override
+  String get recorderAddFolder => '新增資料夾';
+
+  @override
+  String get recorderFolderName => '資料夾名稱';
+
+  @override
+  String get recorderNoResults => '找不到相關結果';
+
+  @override
+  String get recorderUncategorized => '未分類';
+
+  @override
+  String get recorderStatusRecording => '錄音中';
+
+  @override
+  String get recorderStatusIdle => '點擊開始錄音';
+
+  @override
+  String get recorderSaveTitle => '儲存錄音';
+
+  @override
+  String get recorderSaveHint => '輸入錄音名稱';
+
+  @override
+  String get recorderSaveFolder => '儲存至資料夾';
+
+  @override
+  String get recorderDiscard => '捨棄';
+
+  @override
+  String recorderFolderCount(int n) {
+    return '$n 筆';
+  }
+
+  @override
+  String get recorderFolderEmpty => '此資料夾沒有錄音';
+
+  @override
+  String get recorderFolderRenameTitle => '重新命名資料夾';
+
+  @override
+  String get recorderFolderDeleteTitle => '刪除資料夾';
+
+  @override
+  String recorderFolderDeleteBody(String name) {
+    return '確定要刪除「$name」及其所有錄音？此操作無法復原。';
+  }
+
+  @override
+  String get recorderMoveToFolder => '移至資料夾';
+
+  @override
+  String get recorderExportShare => '匯出 / 分享';
+
+  @override
+  String get recorderRenameTitle => '重新命名';
+
+  @override
+  String get recorderDeleteTitle => '刪除錄音';
+
+  @override
+  String recorderDeleteBody(String name) {
+    return '確定要刪除「$name」？此操作無法復原。';
+  }
+
+  @override
+  String metronomeBpmClamped(int bpm) {
+    return 'BPM 已自動調整為 $bpm';
+  }
+
+  @override
+  String get recorderSaveNameRequired => '請輸入錄音名稱';
 }

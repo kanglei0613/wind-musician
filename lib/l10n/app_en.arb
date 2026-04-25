@@ -74,5 +74,98 @@
   "analysisMusicianLabel": "Select Musician Style",
   "scheduleTitle": "Schedule",
   "scheduleAdd": "Add Practice",
-  "scheduleNoEvents": "No schedule yet"
+  "scheduleNoEvents": "No schedule yet",
+  "drawerNotSignedIn": "Not signed in",
+  "drawerSignOut": "Sign Out",
+  "loginTagline": "Record every practice session",
+  "loginGoogleButton": "Sign in with Google",
+  "loginAppleButton": "Sign in with Apple",
+  "loginDisplayName": "Display Name",
+  "loginPassword": "Password",
+  "loginForgotPassword": "Forgot password?",
+  "loginSignUp": "Sign Up",
+  "loginSignIn": "Sign In",
+  "loginAlreadyHaveAccount": "Already have an account? Sign in",
+  "loginNoAccount": "No account? Sign up",
+  "loginBenefitHint": "Sign in to sync records and join ensembles",
+  "loginSkip": "Skip",
+  "loginFieldRequired": "This field is required",
+  "loginInvalidEmail": "Please enter a valid email",
+  "loginPasswordTooShort": "Password must be at least 6 characters",
+  "calendarTitle": "Calendar",
+  "calendarSignInHint": "Sign in to use ensemble group features",
+  "calendarAddEntry": "Add Practice Record",
+  "calendarNoEntries": "No entries for this day",
+  "calendarTabPersonal": "Personal",
+  "calendarTabAll": "All Ensembles",
+  "calendarEdit": "Edit",
+  "calendarDelete": "Delete",
+  "calendarUnitMin": "min",
+  "calendarUnitHour": "hr",
+  "communityTitle": "Community",
+  "communityComingSoonTitle": "Community Features Coming Soon",
+  "communityComingSoonSub": "Friend updates, motivation, and progress sharing",
+  "communityFriendsTitle": "Friends' Practice",
+  "communityFriendsSub": "See what friends practiced today",
+  "communityLeaderboardTitle": "Leaderboard",
+  "communityLeaderboardSub": "Weekly practice hours ranking",
+  "communityDevelopingNote": "Features in development, stay tuned",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonCreate": "Create",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonRename": "Rename",
+  "commonUndoWarning": "This action cannot be undone.",
+  "recorderSearchHint": "Search folders",
+  "recorderAddFolder": "New Folder",
+  "recorderFolderName": "Folder name",
+  "recorderNoResults": "No results found",
+  "recorderUncategorized": "Uncategorized",
+  "recorderStatusRecording": "Recording",
+  "recorderStatusIdle": "Tap to start recording",
+  "recorderSaveTitle": "Save Recording",
+  "recorderSaveHint": "Enter recording name",
+  "recorderSaveFolder": "Save to Folder",
+  "recorderDiscard": "Discard",
+  "recorderFolderCount": "{n} items",
+  "@recorderFolderCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderFolderEmpty": "No recordings in this folder",
+  "recorderFolderRenameTitle": "Rename Folder",
+  "recorderFolderDeleteTitle": "Delete Folder",
+  "recorderFolderDeleteBody": "Delete \"{name}\" and all its recordings? This cannot be undone.",
+  "@recorderFolderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recorderMoveToFolder": "Move to Folder",
+  "recorderExportShare": "Export / Share",
+  "recorderRenameTitle": "Rename",
+  "recorderDeleteTitle": "Delete Recording",
+  "recorderDeleteBody": "Delete \"{name}\"? This cannot be undone.",
+  "@recorderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metronomeBpmClamped": "BPM adjusted to {bpm}",
+  "@metronomeBpmClamped": {
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderSaveNameRequired": "Please enter a recording name"
 }

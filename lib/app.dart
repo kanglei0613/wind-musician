@@ -9,6 +9,8 @@ import 'shared/theme/color_mode_provider.dart';
 import 'router.dart';
 
 /// 語言設定 Provider
+/// 初始值由 main.dart 透過 ProviderScope overrides 注入（從 SharedPreferences 讀取），
+/// 預設為中文。
 final localeProvider = StateProvider<Locale>((ref) {
   return const Locale('zh');
 });

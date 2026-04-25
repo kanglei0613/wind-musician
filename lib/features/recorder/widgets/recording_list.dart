@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../recorder_provider.dart';
 import 'folder_item.dart';
 import 'recording_item.dart';
+import '../../../l10n/app_localizations.dart';
 
 class RecordingList extends ConsumerWidget {
   const RecordingList({super.key});
@@ -11,6 +12,7 @@ class RecordingList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final recordingsAsync = ref.watch(recordingsProvider);
     final foldersAsync = ref.watch(foldersProvider);
     final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
@@ -74,7 +76,7 @@ class RecordingList extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              searchQuery.isEmpty ? '還沒有錄音' : '找不到相關結果',
+              searchQuery.isEmpty ? l.recorderNoRecordings : l.recorderNoResults,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 16,
@@ -104,7 +106,7 @@ class RecordingList extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Text(
-                '未分類',
+                l.recorderUncategorized,
                 style: TextStyle(
                   color:
                       colorScheme.onSurface.withValues(alpha: 0.5),

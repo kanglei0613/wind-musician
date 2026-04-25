@@ -384,7 +384,7 @@ class _PracticeEntryTile extends ConsumerWidget {
         trailing: PopupMenuButton<String>(
           icon: Icon(Icons.more_vert,
               size: 18, color: cs.onSurfaceVariant),
-          onSelected: (v) {
+          onSelected: (v) async {
             if (v == 'edit') {
               showDialog<bool>(
                 context: context,
@@ -394,7 +394,29 @@ class _PracticeEntryTile extends ConsumerWidget {
                 ),
               );
             } else if (v == 'delete') {
-              ref.read(practiceRepositoryProvider).deleteEntry(entry.id);
+              // 加入確認對話框，避免用戶誤刪不可逆的練習紀錄
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: Text(l.calendarDelete),
+                  content: Text(l.commonUndoWarning),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
+                      child: Text(l.commonCancel,
+                          style: TextStyle(color: cs.onSurfaceVariant)),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+                      child: Text(l.calendarDelete,
+                          style: const TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                ref.read(practiceRepositoryProvider).deleteEntry(entry.id);
+              }
             }
           },
           itemBuilder: (_) => [

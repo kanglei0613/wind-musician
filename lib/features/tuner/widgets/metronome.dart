@@ -2,6 +2,7 @@ library;
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import '../../../shared/constants/app_constants.dart';
 import '../../../shared/theme/app_colors.dart';
@@ -131,6 +132,28 @@ class _MetronomeState extends State<Metronome>
     final controller = TextEditingController(text: '$_bpm');
     final cs = Theme.of(context).colorScheme;
     final l = AppLocalizations.of(context)!;
+
+    // 套用並在必要時夾值，顯示提示
+    void applyValue(String raw) {
+      if (raw.isEmpty) return; // 空白 → 保留目前 BPM
+      final parsed = int.tryParse(raw);
+      if (parsed == null) return;
+      final clamped = parsed.clamp(
+        AppConstants.metronomeMinBpm,
+        AppConstants.metronomeMaxBpm,
+      );
+      _adjustBpm(clamped - _bpm);
+      if (parsed != clamped && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l.metronomeBpmClamped(clamped)),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -142,6 +165,8 @@ class _MetronomeState extends State<Metronome>
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
+          // 只允許輸入數字，防止非法字元
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           autofocus: true,
           style: TextStyle(
             color: cs.onSurface,
@@ -151,13 +176,12 @@ class _MetronomeState extends State<Metronome>
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             border: InputBorder.none,
-            hintText: '20-320',
+            hintText: '${AppConstants.metronomeMinBpm}–${AppConstants.metronomeMaxBpm}',
             hintStyle: TextStyle(color: cs.onSurfaceVariant),
           ),
           onSubmitted: (value) {
-            final bpm = int.tryParse(value);
-            if (bpm != null) _adjustBpm(bpm - _bpm);
             Navigator.pop(ctx);
+            applyValue(value);
           },
         ),
         actions: [
@@ -170,9 +194,9 @@ class _MetronomeState extends State<Metronome>
           ),
           TextButton(
             onPressed: () {
-              final bpm = int.tryParse(controller.text);
-              if (bpm != null) _adjustBpm(bpm - _bpm);
+              final value = controller.text;
               Navigator.pop(ctx);
+              applyValue(value);
             },
             child: Text(
               l.tunerDone,
@@ -309,6 +333,7 @@ class _MetronomeState extends State<Metronome>
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(16),
@@ -591,6 +616,8 @@ class _PressButton extends StatelessWidget {
       onTap: onTap,
       onLongPressStart: (_) => onLongPressStart(),
       onLongPressEnd: (_) => onLongPressEnd(),
+      // 手指滑出按鈕範圍時手勢被取消，同樣要停止 timer
+      onLongPressCancel: onLongPressEnd,
       child: Container(
         width: 32,
         height: 32,
@@ -612,6 +639,9 @@ class _PressButton extends StatelessWidget {
     );
   }
 }
+
+/// 分母只允許正規的音樂記譜值
+const List<int> _kDenominatorValues = [1, 2, 4, 8, 16, 32];
 
 class _TimeSignature extends StatelessWidget {
   final int numerator;
@@ -644,7 +674,12 @@ class _TimeSignature extends StatelessWidget {
             ),
           ),
         ),
-        _ScrollPicker(value: denominator, min: 1, max: 32, onChanged: onDenominatorChanged),
+        // 分母限定為正規音樂值，避免用戶選出無意義的拍號
+        _ListScrollPicker(
+          value: denominator,
+          values: _kDenominatorValues,
+          onChanged: onDenominatorChanged,
+        ),
       ],
     );
   }
@@ -707,6 +742,85 @@ class _ScrollPickerState extends State<_ScrollPicker> {
           childCount: widget.max - widget.min + 1,
           builder: (context, index) {
             final val = widget.min + index;
+            final isSelected = val == widget.value;
+            return Center(
+              child: Text(
+                '$val',
+                style: TextStyle(
+                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
+                  fontSize: isSelected ? 20 : 14,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// 從固定清單選值的滾輪，用於分母等只有特定合法值的欄位
+class _ListScrollPicker extends StatefulWidget {
+  final int value;
+  final List<int> values;
+  final ValueChanged<int> onChanged;
+
+  const _ListScrollPicker({
+    required this.value,
+    required this.values,
+    required this.onChanged,
+  });
+
+  @override
+  State<_ListScrollPicker> createState() => _ListScrollPickerState();
+}
+
+class _ListScrollPickerState extends State<_ListScrollPicker> {
+  late FixedExtentScrollController _controller;
+
+  int get _currentIndex {
+    final idx = widget.values.indexOf(widget.value);
+    return idx >= 0 ? idx : 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FixedExtentScrollController(initialItem: _currentIndex);
+  }
+
+  @override
+  void didUpdateWidget(_ListScrollPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _controller.jumpToItem(_currentIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 36,
+      height: 60,
+      child: ListWheelScrollView.useDelegate(
+        controller: _controller,
+        itemExtent: 30,
+        perspective: 0.003,
+        diameterRatio: 1.5,
+        physics: const FixedExtentScrollPhysics(),
+        onSelectedItemChanged: (index) => widget.onChanged(widget.values[index]),
+        childDelegate: ListWheelChildBuilderDelegate(
+          childCount: widget.values.length,
+          builder: (context, index) {
+            final val = widget.values[index];
             final isSelected = val == widget.value;
             return Center(
               child: Text(
@@ -836,10 +950,9 @@ class _SectionSheetState extends State<_SectionSheet> {
                           ),
                         ),
                       ),
-                      _MiniScrollPicker(
+                      _MiniListScrollPicker(
                         value: s.denominator,
-                        min: 1,
-                        max: 32,
+                        values: _kDenominatorValues,
                         onChanged: (v) => setState(() => s.denominator = v),
                       ),
                       const SizedBox(width: 12),
@@ -977,6 +1090,86 @@ class _MiniScrollPickerState extends State<_MiniScrollPicker> {
           childCount: widget.max - widget.min + 1,
           builder: (context, index) {
             final val = widget.min + index;
+            final isSelected = val == widget.value;
+            return Center(
+              child: Text(
+                '$val',
+                style: TextStyle(
+                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
+                  fontSize: isSelected ? 16 : 12,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// 段落設定用的固定清單迷你滾輪（分母專用）
+class _MiniListScrollPicker extends StatefulWidget {
+  final int value;
+  final List<int> values;
+  final ValueChanged<int> onChanged;
+
+  const _MiniListScrollPicker({
+    required this.value,
+    required this.values,
+    required this.onChanged,
+  });
+
+  @override
+  State<_MiniListScrollPicker> createState() => _MiniListScrollPickerState();
+}
+
+class _MiniListScrollPickerState extends State<_MiniListScrollPicker> {
+  late FixedExtentScrollController _controller;
+
+  int get _currentIndex {
+    final idx = widget.values.indexOf(widget.value);
+    return idx >= 0 ? idx : 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FixedExtentScrollController(initialItem: _currentIndex);
+  }
+
+  @override
+  void didUpdateWidget(_MiniListScrollPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _controller.jumpToItem(_currentIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 32,
+      height: 48,
+      child: ListWheelScrollView.useDelegate(
+        controller: _controller,
+        itemExtent: 24,
+        perspective: 0.003,
+        diameterRatio: 1.5,
+        physics: const FixedExtentScrollPhysics(),
+        onSelectedItemChanged: (index) => widget.onChanged(widget.values[index]),
+        childDelegate: ListWheelChildBuilderDelegate(
+          childCount: widget.values.length,
+          builder: (context, index) {
+            final val = widget.values[index];
             final isSelected = val == widget.value;
             return Center(
               child: Text(

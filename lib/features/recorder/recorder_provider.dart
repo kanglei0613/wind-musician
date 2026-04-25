@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../shared/constants/app_constants.dart';
 import 'models/recording.dart';
 import 'models/recording_folder.dart';
 import 'repositories/folder_repository.dart';
@@ -152,13 +155,27 @@ class RecorderNotifier extends Notifier<RecorderState> {
   bool _timerRunning = false;
 
   @override
-  RecorderState build() => const RecorderState();
+  RecorderState build() {
+    // ref.onDispose 確保 Riverpod 在 provider 被移除時正確釋放資源
+    ref.onDispose(() {
+      _timerRunning = false;
+      _recorder.dispose();
+    });
+    return const RecorderState();
+  }
 
   void selectFolder(String? folderId) {
     state = state.copyWith(selectedFolderId: folderId);
   }
 
   Future<void> startRecording() async {
+    // 先確認麥克風權限，避免 Android 13+ PlatformException crash
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      // 權限拒絕：不進行錄音，UI 層可透過 recorderProvider 的 status 判斷
+      return;
+    }
+
     final repo = ref.read(recordingRepositoryProvider);
     final id = _uuid.v4();
     final path = await repo.generateRecordingPath(
@@ -181,13 +198,18 @@ class RecorderNotifier extends Notifier<RecorderState> {
   }
 
   Future<void> stopRecording() async {
+    // Re-entry guard：若已非錄音狀態（例如 _tick 與 UI 同時觸發）直接返回，
+    // 避免 _recorder.stop() 被呼叫兩次而拋出 PlatformException
+    if (state.status != RecorderStatus.recording) return;
+
     _stopTimer();
+    // 在第一個 await 前即時將 status 改為 idle，
+    // 確保空窗期內任何重複呼叫都會被上方 guard 攔截
+    state = state.copyWith(status: RecorderStatus.idle);
+
     final path = await _recorder.stop();
     if (path == null) return;
-    state = state.copyWith(
-      status: RecorderStatus.idle,
-      pendingPath: path,
-    );
+    state = state.copyWith(pendingPath: path);
   }
 
   Future<void> saveRecording(String name) async {
@@ -236,13 +258,14 @@ class RecorderNotifier extends Notifier<RecorderState> {
     while (_timerRunning) {
       await Future.delayed(const Duration(seconds: 1));
       if (!_timerRunning) break;
-      state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
+      final next = state.elapsedSeconds + 1;
+      state = state.copyWith(elapsedSeconds: next);
+      // 達到上限自動停止，並透過 pendingPath 觸發儲存對話框
+      if (next >= AppConstants.maxRecordingSeconds) {
+        await stopRecording();
+        break;
+      }
     }
-  }
-
-  void dispose() {
-    _stopTimer();
-    _recorder.dispose();
   }
 }
 
@@ -252,9 +275,18 @@ final audioPlayerProvider =
 
 class AudioPlayerNotifier extends Notifier<String?> {
   final _player = AudioPlayer();
+  // 保存 subscription，每次 play() 前先取消，避免累積洩漏
+  StreamSubscription? _stateSubscription;
 
   @override
-  String? build() => null;
+  String? build() {
+    // ref.onDispose 確保 Riverpod 在 provider 被移除時正確釋放資源
+    ref.onDispose(() {
+      _stateSubscription?.cancel();
+      _player.dispose();
+    });
+    return null;
+  }
 
   AudioPlayer get player => _player;
 
@@ -264,12 +296,16 @@ class AudioPlayerNotifier extends Notifier<String?> {
       state = null;
       return;
     }
+    // 取消上一次的 subscription，再建立新的
+    await _stateSubscription?.cancel();
+    _stateSubscription = null;
+
     await _player.stop();
     await _player.setFilePath(recording.path);
     await _player.play();
     state = recording.id;
 
-    _player.playerStateStream.listen((s) {
+    _stateSubscription = _player.playerStateStream.listen((s) {
       if (s.processingState == ProcessingState.completed) {
         state = null;
       }
@@ -281,14 +317,12 @@ class AudioPlayerNotifier extends Notifier<String?> {
   }
 
   Future<void> stop() async {
+    await _stateSubscription?.cancel();
+    _stateSubscription = null;
     await _player.stop();
     state = null;
   }
 
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
-
-  void dispose() {
-    _player.dispose();
-  }
 }

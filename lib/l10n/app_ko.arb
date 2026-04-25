@@ -74,5 +74,98 @@
   "analysisMusicianLabel": "음악가 스타일 선택",
   "scheduleTitle": "일정",
   "scheduleAdd": "연습 추가",
-  "scheduleNoEvents": "일정이 없습니다"
+  "scheduleNoEvents": "일정이 없습니다",
+  "drawerNotSignedIn": "로그인되지 않음",
+  "drawerSignOut": "로그아웃",
+  "loginTagline": "모든 연습을 기록하세요",
+  "loginGoogleButton": "Google로 로그인",
+  "loginAppleButton": "Apple로 로그인",
+  "loginDisplayName": "표시 이름",
+  "loginPassword": "비밀번호",
+  "loginForgotPassword": "비밀번호를 잊으셨나요?",
+  "loginSignUp": "회원가입",
+  "loginSignIn": "로그인",
+  "loginAlreadyHaveAccount": "이미 계정이 있으신가요? 로그인",
+  "loginNoAccount": "계정이 없으신가요? 회원가입",
+  "loginBenefitHint": "로그인하여 기록을 동기화하고 앙상블에 참여하세요",
+  "loginSkip": "건너뛰기",
+  "loginFieldRequired": "이 필드는 필수입니다",
+  "loginInvalidEmail": "유효한 이메일을 입력해주세요",
+  "loginPasswordTooShort": "비밀번호는 최소 6자 이상이어야 합니다",
+  "calendarTitle": "캘린더",
+  "calendarSignInHint": "로그인하면 앙상블 그룹 기능을 사용할 수 있습니다",
+  "calendarAddEntry": "연습 기록 추가",
+  "calendarNoEntries": "이 날의 기록이 없습니다",
+  "calendarTabPersonal": "개인",
+  "calendarTabAll": "전체 앙상블",
+  "calendarEdit": "편집",
+  "calendarDelete": "삭제",
+  "calendarUnitMin": "분",
+  "calendarUnitHour": "시간",
+  "communityTitle": "커뮤니티",
+  "communityComingSoonTitle": "커뮤니티 기능 출시 예정",
+  "communityComingSoonSub": "친구 연습 현황, 서로 격려, 진도 공유",
+  "communityFriendsTitle": "친구의 연습",
+  "communityFriendsSub": "친구가 오늘 무엇을 연습했는지 보기",
+  "communityLeaderboardTitle": "리더보드",
+  "communityLeaderboardSub": "이번 주 연습 시간 순위",
+  "communityDevelopingNote": "기능 개발 중입니다, 기대해 주세요",
+  "commonCancel": "취소",
+  "commonConfirm": "확인",
+  "commonCreate": "만들기",
+  "commonSave": "저장",
+  "commonDelete": "삭제",
+  "commonRename": "이름 변경",
+  "commonUndoWarning": "이 작업은 취소할 수 없습니다.",
+  "recorderSearchHint": "폴더 검색",
+  "recorderAddFolder": "폴더 추가",
+  "recorderFolderName": "폴더 이름",
+  "recorderNoResults": "검색 결과 없음",
+  "recorderUncategorized": "미분류",
+  "recorderStatusRecording": "녹음 중",
+  "recorderStatusIdle": "탭하여 녹음 시작",
+  "recorderSaveTitle": "녹음 저장",
+  "recorderSaveHint": "녹음 이름 입력",
+  "recorderSaveFolder": "폴더에 저장",
+  "recorderDiscard": "폐기",
+  "recorderFolderCount": "{n}개",
+  "@recorderFolderCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderFolderEmpty": "이 폴더에 녹음이 없습니다",
+  "recorderFolderRenameTitle": "폴더 이름 변경",
+  "recorderFolderDeleteTitle": "폴더 삭제",
+  "recorderFolderDeleteBody": "「{name}」과 모든 녹음을 삭제하시겠습니까？이 작업은 취소할 수 없습니다.",
+  "@recorderFolderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recorderMoveToFolder": "폴더로 이동",
+  "recorderExportShare": "내보내기 / 공유",
+  "recorderRenameTitle": "이름 변경",
+  "recorderDeleteTitle": "녹음 삭제",
+  "recorderDeleteBody": "「{name}」을 삭제하시겠습니까？이 작업은 취소할 수 없습니다.",
+  "@recorderDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metronomeBpmClamped": "BPM이 {bpm}으로 조정되었습니다",
+  "@metronomeBpmClamped": {
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      }
+    }
+  },
+  "recorderSaveNameRequired": "녹음 이름을 입력해주세요"
 }

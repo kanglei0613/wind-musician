@@ -5,6 +5,7 @@ import '../models/recording.dart';
 import '../models/recording_folder.dart';
 import '../recorder_provider.dart';
 import 'recording_item.dart';
+import '../../../l10n/app_localizations.dart';
 
 class FolderItem extends ConsumerStatefulWidget {
   final RecordingFolder folder;
@@ -26,6 +27,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final count = widget.recordings.length;
 
     return Column(
@@ -54,7 +56,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                   ),
                 ),
                 Text(
-                  '$count 筆',
+                  l.recorderFolderCount(count),
                   style: TextStyle(
                     color:
                         colorScheme.onSurface.withValues(alpha: 0.5),
@@ -85,7 +87,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                         Icon(Icons.edit,
                             color: colorScheme.onSurface, size: 18),
                         const SizedBox(width: 12),
-                        Text('重新命名',
+                        Text(l.commonRename,
                             style: TextStyle(
                                 color: colorScheme.onSurface)),
                       ]),
@@ -96,7 +98,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                         Icon(Icons.delete,
                             color: colorScheme.error, size: 18),
                         const SizedBox(width: 12),
-                        Text('刪除資料夾',
+                        Text(l.recorderFolderDeleteTitle,
                             style:
                                 TextStyle(color: colorScheme.error)),
                       ]),
@@ -132,7 +134,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     child: Text(
-                      '此資料夾沒有錄音',
+                      l.recorderFolderEmpty,
                       style: TextStyle(
                         color: colorScheme.onSurface
                             .withValues(alpha: 0.4),
@@ -157,6 +159,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
 
   Future<void> _showRenameDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final controller =
         TextEditingController(text: widget.folder.name);
     final notifier = ref.read(foldersProvider.notifier);
@@ -165,7 +168,7 @@ class _FolderItemState extends ConsumerState<FolderItem> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('重新命名資料夾',
+        title: Text(l.recorderFolderRenameTitle,
             style: TextStyle(color: colorScheme.onSurface)),
         content: TextField(
           controller: controller,
@@ -185,13 +188,13 @@ class _FolderItemState extends ConsumerState<FolderItem> {
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(null),
-            child: Text('取消',
+            child: Text(l.commonCancel,
                 style: TextStyle(color: colorScheme.onSurface)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context, rootNavigator: true)
                 .pop(controller.text.trim()),
-            child: Text('確認',
+            child: Text(l.commonConfirm,
                 style: TextStyle(color: colorScheme.primary)),
           ),
         ],
@@ -206,29 +209,30 @@ class _FolderItemState extends ConsumerState<FolderItem> {
 
   Future<void> _showDeleteDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final notifier = ref.read(foldersProvider.notifier);
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('刪除資料夾',
+        title: Text(l.recorderFolderDeleteTitle,
             style: TextStyle(color: colorScheme.onSurface)),
         content: Text(
-          '確定要刪除「${widget.folder.name}」及其所有錄音？此操作無法復原。',
+          l.recorderFolderDeleteBody(widget.folder.name),
           style: TextStyle(color: colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(false),
-            child: Text('取消',
+            child: Text(l.commonCancel,
                 style: TextStyle(color: colorScheme.onSurface)),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(context, rootNavigator: true).pop(true),
-            child: Text('刪除',
+            child: Text(l.commonDelete,
                 style: TextStyle(color: colorScheme.error)),
           ),
         ],

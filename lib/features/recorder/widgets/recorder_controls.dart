@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../recorder_provider.dart';
 import 'save_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 
 class RecorderControls extends ConsumerStatefulWidget {
   const RecorderControls({super.key});
@@ -62,6 +63,7 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final recorderState = ref.watch(recorderProvider);
     final notifier = ref.read(recorderProvider.notifier);
     final isRecording =
@@ -82,7 +84,7 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
         ),
         const SizedBox(height: 8),
         Text(
-          isRecording ? '錄音中' : '點擊開始錄音',
+          isRecording ? l.recorderStatusRecording : l.recorderStatusIdle,
           style: TextStyle(
             fontSize: 14,
             color: colorScheme.onSurface.withValues(alpha: 0.6),
