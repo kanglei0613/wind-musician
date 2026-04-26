@@ -228,9 +228,6 @@ class UserGuidePage extends StatelessWidget {
 
   String _fallback(AppLocalizations l, String key) {
     // 未入 ARB 的指南專用字串，依當前語系回傳
-    final lang = l.langZh == '中文'
-        ? (l.langEn == 'English' && l.langJa == '日本語' ? 'zh' : 'en')
-        : 'en';
     // 判斷語系：透過已知翻譯值反推
     final isZh = l.recorderTitle == '錄音';
     final isJa = l.recorderTitle == '録音' && l.tunerInTune == '正確';

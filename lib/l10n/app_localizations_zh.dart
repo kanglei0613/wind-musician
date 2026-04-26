@@ -57,7 +57,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get instrumentTrombone => '長號';
 
   @override
-  String get instrumentTuba => '大號';
+  String get instrumentTuba => '低音號';
 
   @override
   String get instrumentTrumpet => '小號';
@@ -87,7 +87,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get instrumentFrenchHorn => '法國號';
 
   @override
-  String get instrumentEnglishHorn => '英國號';
+  String get instrumentEnglishHorn => '英國管';
 
   @override
   String get tunerDone => '完成';

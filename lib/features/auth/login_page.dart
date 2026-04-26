@@ -24,8 +24,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _loading = false;
   bool _obscurePassword = true;
   bool _isSignUp = false;
-  bool _showEmailForm = false;
-
   @override
   void dispose() {
     _emailCtrl.dispose();

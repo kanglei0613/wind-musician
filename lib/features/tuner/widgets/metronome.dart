@@ -1,12 +1,15 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import '../../../shared/constants/app_constants.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/services/native_metronome_channel.dart';
+import '../../../shared/services/audio_focus_channel.dart';
 
 class _Section {
   int numerator;
@@ -53,7 +56,23 @@ class _MetronomeState extends State<Metronome>
   int _currentBeat = 0;
   Timer? _timer;
 
+  /// 絕對時間補償（iOS / Dart 路徑）：記錄播放起始時間與已排程的拍數
+  /// 每拍的實際延遲 = (預定時間 - 目前時間)，避免 Timer 累積漂移
+  /// Android 路徑由 MetronomeEngine (Kotlin) 負責，此變數不使用
+  DateTime? _playStartTime;
+  int _scheduledBeatIndex = 0;
+
   bool _sectionFlash = false;
+
+  // ── Android Platform Channel ─────────────────────────────────────────────
+  /// Android 原生節拍器 Channel（Singleton），iOS 上不會呼叫
+  final _nativeChannel = NativeMetronomeChannel();
+
+  /// 訂閱 Native 拍點事件（Android 專用）
+  StreamSubscription<void>? _nativeBeatSub;
+
+  /// 訂閱 AudioFocus 變化（Android 專用），用於處理螢幕錄影等搶焦點的情況
+  StreamSubscription<AudioFocusState>? _focusSub;
 
   AudioSource? _strongBeat;
   AudioSource? _weakBeat;
@@ -80,6 +99,47 @@ class _MetronomeState extends State<Metronome>
       CurvedAnimation(parent: _animController, curve: Curves.easeOut),
     );
     _initAudio();
+
+    // Android：訂閱 AudioFocus 變化事件
+    // 當螢幕錄影工具等搶走 AudioFocus 時，自動暫停 UI 狀態（音效由 Native 已停止）
+    if (Platform.isAndroid) {
+      _focusSub = AudioFocusChannel().onFocusChange.listen((state) {
+        if (!mounted) return;
+        switch (state) {
+          case AudioFocusState.lost:
+          case AudioFocusState.lostTransient:
+            // 焦點被搶走 → 同步更新 Flutter UI 為停止狀態
+            if (_isPlaying) {
+              setState(() {
+                _isPlaying = false;
+                _currentBeat = 0;
+                _currentSectionIndex = 0;
+                _currentMeasure = 0;
+                _sectionFlash = false;
+              });
+              _nativeBeatSub?.cancel();
+              _nativeBeatSub = null;
+              // 顯示提示（需要在下一幀後取得 context）
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('音訊焦點被其他 App 搶走，節拍器已暫停'),
+                      duration: Duration(seconds: 3),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              });
+            }
+          case AudioFocusState.gained:
+            // 焦點恢復（來電結束等），不自動重啟，由用戶手動按播放
+            break;
+          default:
+            break;
+        }
+      });
+    }
   }
 
   Future<void> _initAudio() async {
@@ -105,8 +165,16 @@ class _MetronomeState extends State<Metronome>
       );
     });
     if (_isPlaying) {
-      _timer?.cancel();
-      _scheduleBeat();
+      if (Platform.isAndroid) {
+        // Android：通知 Native 更新 BPM，引擎內部會重置時間基準
+        _nativeChannel.updateBpm(_bpm);
+      } else {
+        // iOS / Dart 路徑：重置時間基準，重新排程
+        _timer?.cancel();
+        _playStartTime = DateTime.now();
+        _scheduledBeatIndex = 0;
+        _scheduleNextBeat();
+      }
     }
   }
 
@@ -216,12 +284,44 @@ class _MetronomeState extends State<Metronome>
       _currentMeasure = 0;
       _sectionFlash = false;
     });
-    _onBeat();
-    _scheduleBeat();
+
+    if (Platform.isAndroid) {
+      // Android 路徑：先訂閱 onBeat Stream，再啟動原生服務
+      // 注意：必須先 listen 再 start，否則可能漏掉 Native 發出的第一拍事件
+      _nativeBeatSub?.cancel();
+      _nativeBeatSub = _nativeChannel.onBeat.listen((_) {
+        if (mounted && _isPlaying) _onBeat();
+      });
+      // 啟動前景服務：Native 引擎開始排程，第一拍音效 + onBeat 事件由 Native 發出
+      _nativeChannel.start(
+        bpm: _bpm,
+        numerator: _activeNumerator,
+        denominator: _activeDenominator,
+      );
+      // ⚠️ 不在此呼叫 _onBeat()：Native 會透過 stream 發出第一拍事件
+      //    避免 Flutter 手動呼叫 + Native 事件造成雙重計拍
+    } else {
+      // iOS / Dart 路徑：使用 Dart Timer + SoLoud
+      _playStartTime = DateTime.now();
+      _scheduledBeatIndex = 0;
+      _onBeat();
+      _scheduleNextBeat();
+    }
   }
 
   void _stop() {
-    _timer?.cancel();
+    if (Platform.isAndroid) {
+      // Android 路徑：通知 Native 停止服務
+      _nativeChannel.stop();
+      _nativeBeatSub?.cancel();
+      _nativeBeatSub = null;
+    } else {
+      // iOS / Dart 路徑：取消 Dart Timer
+      _timer?.cancel();
+      _playStartTime = null;
+      _scheduledBeatIndex = 0;
+    }
+
     setState(() {
       _isPlaying = false;
       _currentBeat = 0;
@@ -233,23 +333,50 @@ class _MetronomeState extends State<Metronome>
 
   void _toggle() => _isPlaying ? _stop() : _start();
 
-  void _scheduleBeat() {
-    final interval = Duration(
-      milliseconds: ((60000 / _bpm) * (4 / _activeDenominator)).round(),
-    );
-    _timer = Timer(interval, () {
+  /// 絕對時間補償排程：計算每拍的「應發時間」，減去實際耗費時間
+  /// 解決 Timer 鏈式呼叫導致的累積漂移問題
+  void _scheduleNextBeat() {
+    if (!_isPlaying || !mounted || _playStartTime == null) return;
+    _scheduledBeatIndex++;
+    final intervalMs =
+        (60000.0 / _bpm) * (4.0 / _activeDenominator);
+    final targetMs = (_scheduledBeatIndex * intervalMs).round();
+    final elapsedMs =
+        DateTime.now().difference(_playStartTime!).inMilliseconds;
+    final delayMs = (targetMs - elapsedMs).clamp(0, intervalMs.round() * 2);
+    _timer = Timer(Duration(milliseconds: delayMs), () {
       if (!mounted || !_isPlaying) return;
       _onBeat();
-      _scheduleBeat();
+      _scheduleNextBeat();
     });
   }
 
   void _onBeat() {
+    // BC-012：section 切換與 onBeat 之間的 race condition 保護。
+    // _sections 可能在播放中被用戶修改（段落設定 sheet），需確保索引合法。
+    if (_sectionMode) {
+      if (_sections.isEmpty) return;
+      if (_currentSectionIndex >= _sections.length) {
+        _currentSectionIndex = 0;
+        _currentMeasure = 0;
+      }
+      // 確保 _currentBeat 未超出當前 section 的拍數
+      if (_currentBeat >= _sections[_currentSectionIndex].numerator) {
+        _currentBeat = 0;
+      }
+    }
+
     final nextBeat = (_currentBeat + 1) % _activeNumerator;
     final isNewMeasure = nextBeat == 0 && _currentBeat != -1;
     setState(() => _currentBeat = nextBeat);
 
     if (isNewMeasure && _sectionMode) {
+      // 再次確認索引合法（setState 後 _sections 長度可能又變動）
+      if (_sections.isEmpty) return;
+      if (_currentSectionIndex >= _sections.length) {
+        _currentSectionIndex = 0;
+        _currentMeasure = 0;
+      }
       final section = _sections[_currentSectionIndex];
       final nextMeasure = _currentMeasure + 1;
       if (nextMeasure >= section.measures) {
@@ -259,6 +386,17 @@ class _MetronomeState extends State<Metronome>
           _currentMeasure = 0;
           _sectionFlash = true;
         });
+
+        if (Platform.isAndroid) {
+          // Android：通知 Native 更新拍號（引擎內部重置時間基準）
+          final newSection = _sections[nextSection];
+          _nativeChannel.updateTimeSig(newSection.numerator, newSection.denominator);
+        } else {
+          // iOS / Dart 路徑：重置時間基準，新拍號的 interval 從這一刻起算
+          _playStartTime = DateTime.now();
+          _scheduledBeatIndex = 0;
+        }
+
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) setState(() => _sectionFlash = false);
         });
@@ -267,23 +405,35 @@ class _MetronomeState extends State<Metronome>
       }
     }
 
-    try {
-      final isDown = _currentBeat == 0;
-      final source = isDown ? _strongBeat : _weakBeat;
-      if (source != null) {
-        SoLoud.instance.play(source, volume: isDown ? 0.8 : 0.5).then((h) {
-          Future.delayed(const Duration(milliseconds: 60), () {
+    // 音效播放：
+    //   Android → 由 MetronomeEngine (Native) 負責，Flutter 不重複播放
+    //   iOS / Dart → SoLoud 播放 + attack/decay envelope
+    if (!Platform.isAndroid) {
+      try {
+        final isDown = _currentBeat == 0;
+        final source = isDown ? _strongBeat : _weakBeat;
+        if (source != null) {
+          // 以音量 0 起播，短暫淡入避免爆音（click）；再快速淡出，模擬打擊聲 envelope
+          SoLoud.instance.play(source, volume: 0.0).then((h) {
             try {
-              SoLoud.instance.fadeVolume(h, 0, const Duration(milliseconds: 40));
-              Future.delayed(const Duration(milliseconds: 50), () {
-                try { SoLoud.instance.stop(h); } catch (_) {}
+              final peak = isDown ? 0.85 : 0.55;
+              // Attack: 5ms 淡入到峰值
+              SoLoud.instance.fadeVolume(h, peak, const Duration(milliseconds: 5));
+              // Decay: 55ms 後開始淡出
+              Future.delayed(const Duration(milliseconds: 55), () {
+                try {
+                  SoLoud.instance.fadeVolume(h, 0, const Duration(milliseconds: 40));
+                  Future.delayed(const Duration(milliseconds: 45), () {
+                    try { SoLoud.instance.stop(h); } catch (_) {}
+                  });
+                } catch (_) {}
               });
             } catch (_) {}
           });
-        });
+        }
+      } catch (e) {
+        debugPrint('Beat play error: $e');
       }
-    } catch (e) {
-      debugPrint('Beat play error: $e');
     }
 
     _animController.forward().then((_) {
@@ -317,6 +467,15 @@ class _MetronomeState extends State<Metronome>
     _timer?.cancel();
     _longPressTimer?.cancel();
     _animController.dispose();
+
+    // Android 路徑：取消 Native 訂閱並確保服務停止
+    _nativeBeatSub?.cancel();
+    _focusSub?.cancel();
+    if (Platform.isAndroid && _isPlaying) {
+      _nativeChannel.stop();
+    }
+
+    // iOS / Dart 路徑：釋放 SoLoud AudioSource
     if (_strongBeat != null) {
       try { SoLoud.instance.disposeSource(_strongBeat!); } catch (_) {}
     }
@@ -362,15 +521,28 @@ class _MetronomeState extends State<Metronome>
                   : _TimeSignature(
                       numerator: _numerator,
                       denominator: _denominator,
-                      onNumeratorChanged: (v) => setState(() => _numerator = v),
+                      onNumeratorChanged: (v) {
+                        setState(() => _numerator = v);
+                        // 分子改變只影響 UI 的拍點數量，不影響 Native 的間隔計算
+                        // 但需通知 Native 更新拍號以維持拍點音效的強弱分配
+                        if (_isPlaying && Platform.isAndroid) {
+                          _nativeChannel.updateTimeSig(v, _denominator);
+                        }
+                      },
                       onDenominatorChanged: (v) {
-                        setState(() {
-                          _denominator = v;
-                          if (_isPlaying) {
+                        setState(() => _denominator = v);
+                        if (_isPlaying) {
+                          if (Platform.isAndroid) {
+                            // Android：通知 Native 更新拍號
+                            _nativeChannel.updateTimeSig(_numerator, v);
+                          } else {
+                            // iOS / Dart：重置時間基準
                             _timer?.cancel();
-                            _scheduleBeat();
+                            _playStartTime = DateTime.now();
+                            _scheduledBeatIndex = 0;
+                            _scheduleNextBeat();
                           }
-                        });
+                        }
                       },
                     ),
 

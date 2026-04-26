@@ -85,13 +85,25 @@ class TunerNotifier extends StateNotifier<TunerState> {
       state = state.copyWith(isListening: true, error: null);
     }
 
-    final recordStream = await _recorder.startStream(
-      RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        numChannels: 1,
-        sampleRate: PitchDetector.DEFAULT_SAMPLE_RATE.toInt(),
-      ),
-    );
+    // BC-001：startStream 可能因硬體故障或麥克風被搶占而拋出例外
+    final Stream<Uint8List> recordStream;
+    try {
+      recordStream = await _recorder.startStream(
+        RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          numChannels: 1,
+          sampleRate: PitchDetector.DEFAULT_SAMPLE_RATE.toInt(),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isListening: false,
+          error: '無法啟動麥克風，請確認權限並重試。',
+        );
+      }
+      return;
+    }
 
     final audioSampleBufferedStream = bufferedListStream(
       recordStream.map((event) => event.toList()),

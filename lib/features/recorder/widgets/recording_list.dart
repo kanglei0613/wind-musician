@@ -47,10 +47,6 @@ class RecordingList extends ConsumerWidget {
         .where((r) => r.folderId == null)
         .toList();
 
-    // 有資料夾的錄音
-    final inFolders = filteredRecordings
-        .where((r) => r.folderId != null)
-        .toList();
 
     final isLoading =
         recordingsAsync.isLoading || foldersAsync.isLoading;

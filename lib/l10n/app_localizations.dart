@@ -201,7 +201,7 @@ abstract class AppLocalizations {
   /// No description provided for @instrumentTuba.
   ///
   /// In zh, this message translates to:
-  /// **'大號'**
+  /// **'低音號'**
   String get instrumentTuba;
 
   /// No description provided for @instrumentTrumpet.
@@ -261,7 +261,7 @@ abstract class AppLocalizations {
   /// No description provided for @instrumentEnglishHorn.
   ///
   /// In zh, this message translates to:
-  /// **'英國號'**
+  /// **'英國管'**
   String get instrumentEnglishHorn;
 
   /// No description provided for @tunerDone.

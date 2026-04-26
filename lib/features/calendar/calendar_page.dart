@@ -357,6 +357,30 @@ class _PracticeEntryTile extends ConsumerWidget {
         ? '$mins ${l.calendarUnitMin}'
         : '${mins ~/ 60} ${l.calendarUnitHour}${mins % 60 > 0 ? ' ${mins % 60} ${l.calendarUnitMin}' : ''}';
 
+    final isRehearsal = entry.isRehearsal;
+    final iconColor = isRehearsal ? Colors.deepPurple : cs.primary;
+    final bgColor = isRehearsal
+        ? Colors.deepPurple.withValues(alpha: 0.12)
+        : cs.primaryContainer;
+    final icon = isRehearsal ? Icons.groups_outlined : Icons.music_note_outlined;
+
+    // 副標題：排練行程顯示地點＋時間；個人練習顯示時長
+    String subtitleText = dur;
+    if (isRehearsal) {
+      final parts = <String>[];
+      if (entry.startTime != null) {
+        final s = '${entry.startTime!.hour.toString().padLeft(2,'0')}:${entry.startTime!.minute.toString().padLeft(2,'0')}';
+        final e2 = entry.endTime != null
+            ? ' – ${entry.endTime!.hour.toString().padLeft(2,'0')}:${entry.endTime!.minute.toString().padLeft(2,'0')}'
+            : '';
+        parts.add('$s$e2');
+      }
+      if (entry.location != null && entry.location!.isNotEmpty) {
+        parts.add(entry.location!);
+      }
+      subtitleText = parts.isNotEmpty ? parts.join('  ') : dur;
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       shape:
@@ -365,11 +389,10 @@ class _PracticeEntryTile extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: cs.primaryContainer,
+            color: bgColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.music_note_outlined,
-              color: cs.primary, size: 18),
+          child: Icon(icon, color: iconColor, size: 18),
         ),
         title: Text(
           entry.content,
@@ -378,7 +401,7 @@ class _PracticeEntryTile extends ConsumerWidget {
           style:
               TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
         ),
-        subtitle: Text(dur,
+        subtitle: Text(subtitleText,
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12)),
         trailing: PopupMenuButton<String>(

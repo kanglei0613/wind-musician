@@ -2,6 +2,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/constants/app_constants.dart';
 
 class TunerControls extends StatefulWidget {
   final double referenceA4;
@@ -88,7 +89,11 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
 
   void _adjust(double delta) {
     setState(() {
-      _value = (_value + delta).clamp(400, 480);
+      // BC-008：clamp 範圍改用 AppConstants，與調音器設定保持一致
+      _value = (_value + delta).clamp(
+        AppConstants.tunerMinPitch,
+        AppConstants.tunerMaxPitch,
+      );
     });
     widget.onChanged(_value);
   }

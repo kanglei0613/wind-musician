@@ -119,7 +119,12 @@ class RecordingRepository {
 
   Future<void> _saveAll(List<Recording> recordings) async {
     final file = await _getMetadataFile();
-    await file.writeAsString(
-        jsonEncode(recordings.map((r) => r.toJson()).toList()));
+    // BC-006：writeAsString 在磁碟空間不足時拋出 IOException
+    try {
+      await file.writeAsString(
+          jsonEncode(recordings.map((r) => r.toJson()).toList()));
+    } on IOException catch (e) {
+      throw Exception('儲存錄音紀錄失敗（磁碟空間不足？）：$e');
+    }
   }
 }

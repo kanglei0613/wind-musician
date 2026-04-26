@@ -1,5 +1,7 @@
 library;
 
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,13 +23,20 @@ final currentUserProvider = FutureProvider<AppUser?>((ref) async {
   final firebaseUser = authState.valueOrNull;
   if (firebaseUser == null) return null;
 
-  final doc = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(firebaseUser.uid)
-      .get();
+  // BC-005：網路斷線時 Firestore .get() 會拋出 FirebaseException / SocketException
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .get();
 
-  if (!doc.exists) return null;
-  return AppUser.fromFirestore(doc);
+    if (!doc.exists) return null;
+    return AppUser.fromFirestore(doc);
+  } on FirebaseException catch (e) {
+    throw Exception('無法取得用戶資料（Firebase 異常）：${e.message}');
+  } on SocketException {
+    throw Exception('無法取得用戶資料（網路連線失敗），請確認網路後重試。');
+  }
 });
 
 /// Convenience: true when a Firebase user is signed in.

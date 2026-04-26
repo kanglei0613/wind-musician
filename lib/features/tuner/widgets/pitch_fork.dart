@@ -62,20 +62,27 @@ class _PitchForkState extends State<PitchFork> {
 
   Future<void> _onNoteDown(String note) async {
     if (_sustainOn && _activeHandles.containsKey(note)) {
+      // Sustain 模式下再按同一音 → 淡出後停止
       final handle = _activeHandles[note];
-      if (handle != null) {
-        try { await SoLoud.instance.stop(handle); } catch (_) {}
-      }
       setState(() => _activeHandles.remove(note));
+      if (handle != null) {
+        try {
+          SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 30));
+          await Future.delayed(const Duration(milliseconds: 35));
+          SoLoud.instance.stop(handle);
+        } catch (_) {}
+      }
       return;
     }
     if (_activeHandles.containsKey(note)) return;
     final source = _sources[note];
     if (source == null) return;
     try {
+      // 以音量 0 開始播放，立即淡入避免咔嗒聲
       final handle = await SoLoud.instance.play(
-        source, volume: 0.5, looping: true,
+        source, volume: 0.0, looping: true,
       );
+      SoLoud.instance.fadeVolume(handle, 0.5, const Duration(milliseconds: 15));
       setState(() => _activeHandles[note] = handle);
     } catch (_) {}
   }
@@ -84,8 +91,13 @@ class _PitchForkState extends State<PitchFork> {
     if (_sustainOn) return;
     final handle = _activeHandles[note];
     if (handle == null) return;
-    try { await SoLoud.instance.stop(handle); } catch (_) {}
+    // 先從 map 移除（UI 立即反應），再淡出停止
     setState(() => _activeHandles.remove(note));
+    try {
+      SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 40));
+      await Future.delayed(const Duration(milliseconds: 45));
+      SoLoud.instance.stop(handle);
+    } catch (_) {}
   }
 
   Future<void> _toggleSustain() async {

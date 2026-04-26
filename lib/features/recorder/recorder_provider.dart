@@ -120,12 +120,15 @@ class RecorderState {
   final int elapsedSeconds;
   final String? pendingPath;
   final String? selectedFolderId;
+  /// BC-011 / BC-002：操作失敗時的錯誤訊息，UI 顯示後應呼叫 clearError
+  final String? error;
 
   const RecorderState({
     this.status = RecorderStatus.idle,
     this.elapsedSeconds = 0,
     this.pendingPath,
     this.selectedFolderId,
+    this.error,
   });
 
   RecorderState copyWith({
@@ -135,6 +138,8 @@ class RecorderState {
     String? selectedFolderId,
     bool clearPending = false,
     bool clearFolder = false,
+    String? error,
+    bool clearError = false,
   }) {
     return RecorderState(
       status: status ?? this.status,
@@ -142,6 +147,7 @@ class RecorderState {
       pendingPath: clearPending ? null : (pendingPath ?? this.pendingPath),
       selectedFolderId:
           clearFolder ? null : (selectedFolderId ?? this.selectedFolderId),
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -183,17 +189,26 @@ class RecorderNotifier extends Notifier<RecorderState> {
       folderId: state.selectedFolderId,
     );
 
-    await _recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.aacLc,
-        bitRate: 128000,
-        sampleRate: 44100,
-      ),
-      path: path,
-    );
+    // BC-002：_recorder.start 失敗（硬體異常、路徑錯誤等）時 reset 狀態
+    try {
+      await _recorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: RecorderStatus.idle,
+        error: '錄音啟動失敗，請重試。',
+      );
+      return;
+    }
 
     state = state.copyWith(
-        status: RecorderStatus.recording, elapsedSeconds: 0);
+        status: RecorderStatus.recording, elapsedSeconds: 0, clearError: true);
     _startTimer();
   }
 
@@ -208,7 +223,11 @@ class RecorderNotifier extends Notifier<RecorderState> {
     state = state.copyWith(status: RecorderStatus.idle);
 
     final path = await _recorder.stop();
-    if (path == null) return;
+    // BC-011：path 為 null 表示平台未回傳路徑，提示用戶而非靜默遺失
+    if (path == null) {
+      state = state.copyWith(error: '錄音儲存失敗，請重試。');
+      return;
+    }
     state = state.copyWith(pendingPath: path);
   }
 
@@ -301,8 +320,14 @@ class AudioPlayerNotifier extends Notifier<String?> {
     _stateSubscription = null;
 
     await _player.stop();
-    await _player.setFilePath(recording.path);
-    await _player.play();
+    // BC-003：setFilePath / play 可能因檔案不存在或已刪除而 crash
+    try {
+      await _player.setFilePath(recording.path);
+      await _player.play();
+    } catch (e) {
+      state = null;
+      rethrow; // UI 層 catch 後顯示 SnackBar
+    }
     state = recording.id;
 
     _stateSubscription = _player.playerStateStream.listen((s) {

@@ -18,17 +18,41 @@ class TunerPage extends ConsumerStatefulWidget {
   ConsumerState<TunerPage> createState() => _TunerPageState();
 }
 
-class _TunerPageState extends ConsumerState<TunerPage> {
+class _TunerPageState extends ConsumerState<TunerPage>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Future.microtask(() {
       ref.read(tunerProvider.notifier).startListening();
     });
   }
 
+  /// App 生命週期變化：切到背景停止麥克風，回到前景重啟
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Future.microtask(() {
+          if (mounted) ref.read(tunerProvider.notifier).startListening();
+        });
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        Future.microtask(() {
+          try { ref.read(tunerProvider.notifier).stopListening(); } catch (_) {}
+        });
+        break;
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     Future.microtask(() {
       try {
         ref.read(tunerProvider.notifier).stopListening();

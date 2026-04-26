@@ -2,7 +2,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'features/auth/auth_provider.dart';
 import 'features/auth/login_page.dart';
 import 'features/calendar/calendar_page.dart';
 import 'features/calendar/ensemble_page.dart';

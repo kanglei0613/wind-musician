@@ -4,6 +4,14 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- 網路權限（呼叫後端 API 必須） -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 前景服務：節拍器背景播放必須 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <!-- 前景服務類型：媒體播放（Android 10+ 必須明確宣告） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <!-- 喚醒鎖定：確保螢幕關閉時 CPU 持續運作，維持節拍精度 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- 通知權限（Android 13+ POST_NOTIFICATIONS 必須） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:label="wind_musician"
@@ -31,6 +39,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!--
+          MetronomeService：節拍器前景服務
+          - foregroundServiceType="mediaPlayback"：宣告為媒體播放類型，Android 10+ 規定
+          - exported="false"：僅限 App 內部啟動，禁止外部呼叫
+        -->
+        <service
+            android:name=".MetronomeService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
     </application>
 
     <queries>
