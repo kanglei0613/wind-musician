@@ -168,4 +168,10 @@
     }
   },
   "recorderSaveNameRequired": "녹음 이름을 입력해주세요",
- 
+  "metronomeSound": "음색",
+  "metronomePitch": "음높이",
+  "metronomeSoundSine": "사인파",
+  "metronomeSoundWoodblock": "목어",
+  "metronomeSoundStickClick": "스틱",
+  "metronomeSoundSnare": "스네어"
+}

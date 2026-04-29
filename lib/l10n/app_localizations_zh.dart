@@ -291,7 +291,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get calendarSignInHint => '登入後可使用樂團群組功能';
 
   @override
-  String get calendarAddEntry => '新增練習紀錄';
+  String get calendarAddEntry => '新增紀錄';
 
   @override
   String get calendarNoEntries => '這天沒有紀錄';
@@ -436,4 +436,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get recorderSaveNameRequired => '請輸入錄音名稱';
 
- 
+  @override
+  String get metronomeSound => '音色';
+
+  @override
+  String get metronomePitch => '音高';
+
+  @override
+  String get metronomeSoundSine => '正弦波';
+
+  @override
+  String get metronomeSoundWoodblock => '木魚';
+
+  @override
+  String get metronomeSoundStickClick => '鼓棒';
+
+  @override
+  String get metronomeSoundSnare => '小鼓';
+}

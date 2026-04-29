@@ -438,4 +438,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recorderSaveNameRequired => 'Please enter a recording name';
 
- 
+  @override
+  String get metronomeSound => 'Sound';
+
+  @override
+  String get metronomePitch => 'Pitch';
+
+  @override
+  String get metronomeSoundSine => 'Sine';
+
+  @override
+  String get metronomeSoundWoodblock => 'Woodblock';
+
+  @override
+  String get metronomeSoundStickClick => 'Stick';
+
+  @override
+  String get metronomeSoundSnare => 'Snare';
+}

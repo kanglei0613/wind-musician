@@ -129,4 +129,12 @@ class NativeMetronomeChannel {
     if (call.method == 'onBeat') {
       // Native 打了一拍 → 廣播給所有訂閱者
       _beatController.add(null);
-   
+    }
+    return null;
+  }
+
+  /// 釋放資源（通常不需要呼叫，Singleton 會持續存活）。
+  void dispose() {
+    _beatController.close();
+  }
+}

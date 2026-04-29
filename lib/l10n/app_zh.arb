@@ -94,7 +94,7 @@
   "loginPasswordTooShort": "密碼至少需要 6 個字元",
   "calendarTitle": "行事曆",
   "calendarSignInHint": "登入後可使用樂團群組功能",
-  "calendarAddEntry": "新增練習紀錄",
+  "calendarAddEntry": "新增紀錄",
   "calendarNoEntries": "這天沒有紀錄",
   "calendarTabPersonal": "個人",
   "calendarTabAll": "全部樂團",
@@ -168,4 +168,10 @@
     }
   },
   "recorderSaveNameRequired": "請輸入錄音名稱",
- 
+  "metronomeSound": "音色",
+  "metronomePitch": "音高",
+  "metronomeSoundSine": "正弦波",
+  "metronomeSoundWoodblock": "木魚",
+  "metronomeSoundStickClick": "鼓棒",
+  "metronomeSoundSnare": "小鼓"
+}

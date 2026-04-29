@@ -437,4 +437,21 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get recorderSaveNameRequired => '録音名を入力してください';
 
- 
+  @override
+  String get metronomeSound => '音色';
+
+  @override
+  String get metronomePitch => 'ピッチ';
+
+  @override
+  String get metronomeSoundSine => 'サイン波';
+
+  @override
+  String get metronomeSoundWoodblock => '木魚';
+
+  @override
+  String get metronomeSoundStickClick => 'スティック';
+
+  @override
+  String get metronomeSoundSnare => 'スネア';
+}

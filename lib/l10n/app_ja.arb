@@ -168,4 +168,10 @@
     }
   },
   "recorderSaveNameRequired": "録音名を入力してください",
- 
+  "metronomeSound": "音色",
+  "metronomePitch": "ピッチ",
+  "metronomeSoundSine": "サイン波",
+  "metronomeSoundWoodblock": "木魚",
+  "metronomeSoundStickClick": "スティック",
+  "metronomeSoundSnare": "スネア"
+}

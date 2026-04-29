@@ -168,4 +168,10 @@
     }
   },
   "recorderSaveNameRequired": "Please enter a recording name",
- 
+  "metronomeSound": "Sound",
+  "metronomePitch": "Pitch",
+  "metronomeSoundSine": "Sine",
+  "metronomeSoundWoodblock": "Woodblock",
+  "metronomeSoundStickClick": "Stick",
+  "metronomeSoundSnare": "Snare"
+}

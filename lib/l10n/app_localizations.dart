@@ -669,7 +669,7 @@ abstract class AppLocalizations {
   /// No description provided for @calendarAddEntry.
   ///
   /// In zh, this message translates to:
-  /// **'新增練習紀錄'**
+  /// **'新增紀錄'**
   String get calendarAddEntry;
 
   /// No description provided for @calendarNoEntries.
@@ -984,4 +984,35 @@ class _AppLocalizationsDelegate
   const _AppLocalizationsDelegate();
 
   @override
-  Future<AppLocalizations> load(Loca
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'ja', 'ko', 'zh'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'zh':
+      return AppLocalizationsZh();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

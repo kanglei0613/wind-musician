@@ -201,9 +201,10 @@ class _PitchForkState extends State<PitchFork> {
     _prevPanPos = details.localPosition;
     _rotateAccum = 0.0;
 
-    final note = _findNoteAtPosition(details.localPosition);
-    _slideNote = note;
-    if (note != null) _onNoteDown(note);
+    // 只記錄起始音名，供滑音追蹤用
+    // 音符按下由各 Listener.onPointerDown 負責，此處不重複觸發
+    // 避免 sustain 模式下 Listener 移除音符後 pan 又立即重新加回
+    _slideNote = _findNoteAtPosition(details.localPosition);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
@@ -401,8 +402,10 @@ class _PitchForkState extends State<PitchFork> {
                 top: y1 - hexH / 2,
                 child: _HexControl(
                   hexR: hexR, isActive: _sustainOn,
-                  child: GestureDetector(
-                    onTap: _toggleSustain,
+                  // 使用 Listener 繞過手勢 arena，避免與外層 pan GestureDetector 競爭
+                  // GestureDetector(onTap) 在外層有 onPan 時容易被搶走手勢所有權
+                  child: Listener(
+                    onPointerUp: (_) => _toggleSustain(),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -541,4 +544,66 @@ class _HexControl extends StatelessWidget {
           pressedColor: cs.primary,
           sharpColor: cs.surfaceContainerHighest,
           normalColor: cs.surface,
-          borderColor: isActive ? cs.primary : cs.surfaceContaine
+          borderColor: isActive ? cs.primary : cs.surfaceContainerHighest,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// 六角形繪製
+class _HexPainter extends CustomPainter {
+  final bool isPressed;
+  final bool isSharp;
+  final Color pressedColor;
+  final Color sharpColor;
+  final Color normalColor;
+  final Color borderColor;
+
+  _HexPainter({
+    required this.isPressed,
+    required this.isSharp,
+    required this.pressedColor,
+    required this.sharpColor,
+    required this.normalColor,
+    required this.borderColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.height / 2 * 0.95;
+
+    final path = Path();
+    for (int i = 0; i < 6; i++) {
+      final angle = (i * 60 - 30) * math.pi / 180;
+      final px = cx + r * math.cos(angle);
+      final py = cy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(px, py);
+      } else {
+        path.lineTo(px, py);
+      }
+    }
+    path.close();
+
+    canvas.drawPath(
+      path,
+      Paint()..color = isPressed ? pressedColor : isSharp ? sharpColor : normalColor,
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = borderColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = isPressed ? 2 : 1,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_HexPainter old) =>
+      old.isPressed != isPressed || old.isSharp != isSharp;
+}

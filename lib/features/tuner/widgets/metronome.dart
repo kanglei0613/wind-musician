@@ -1515,4 +1515,82 @@ class _MiniListScrollPicker extends StatefulWidget {
   State<_MiniListScrollPicker> createState() => _MiniListScrollPickerState();
 }
 
-class _Mini
+class _MiniListScrollPickerState extends State<_MiniListScrollPicker> {
+  late FixedExtentScrollController _controller;
+
+  int get _currentIndex {
+    final idx = widget.values.indexOf(widget.value);
+    return idx >= 0 ? idx : 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FixedExtentScrollController(initialItem: _currentIndex);
+  }
+
+  @override
+  void didUpdateWidget(_MiniListScrollPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _controller.jumpToItem(_currentIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 32,
+      height: 48,
+      child: ListWheelScrollView.useDelegate(
+        controller: _controller,
+        itemExtent: 24,
+        perspective: 0.003,
+        diameterRatio: 1.5,
+        physics: const FixedExtentScrollPhysics(),
+        onSelectedItemChanged: (index) => widget.onChanged(widget.values[index]),
+        childDelegate: ListWheelChildBuilderDelegate(
+          childCount: widget.values.length,
+          builder: (context, index) {
+            final val = widget.values[index];
+            final isSelected = val == widget.value;
+            return Center(
+              child: Text(
+                '$val',
+                style: TextStyle(
+                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
+                  fontSize: isSelected ? 16 : 12,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  音色選擇器（底部 Sheet 使用）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// 音色選項 key 清單
+const _kSoundKeys = ['SINE', 'WOODBLOCK', 'STICK_CLICK', 'SNARE'];
+
+/// 各音高變體的強拍頻率標籤（顯示在底部 Sheet 數字下方）
+const _kPitchLabels = {
+  1: '500Hz',
+  2: '700Hz',
+  3: '1kHz',
+  4: '1.4kHz',
+  5: '2kHz',
+};

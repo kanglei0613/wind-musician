@@ -436,4 +436,21 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get recorderSaveNameRequired => '녹음 이름을 입력해주세요';
 
- 
+  @override
+  String get metronomeSound => '음색';
+
+  @override
+  String get metronomePitch => '음높이';
+
+  @override
+  String get metronomeSoundSine => '사인파';
+
+  @override
+  String get metronomeSoundWoodblock => '목어';
+
+  @override
+  String get metronomeSoundStickClick => '스틱';
+
+  @override
+  String get metronomeSoundSnare => '스네어';
+}
