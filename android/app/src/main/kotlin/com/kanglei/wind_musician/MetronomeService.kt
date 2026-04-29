@@ -184,6 +184,27 @@ class MetronomeService : Service() {
         )
     }
 
+    /**
+     * 切換音色（運行中可呼叫，AudioTrack 在 audioThread 熱替換）。
+     *
+     * @param soundType  "SINE" | "WOODBLOCK" | "STICK_CLICK" | "SNARE"
+     */
+    fun setSoundType(soundType: String) {
+        val type = try {
+            SoundType.valueOf(soundType.uppercase())
+        } catch (_: IllegalArgumentException) {
+            SoundType.SINE
+        }
+        engine.setSoundType(type)
+    }
+
+    /**
+     * 切換音高變體（1~5）。
+     */
+    fun setPitchVariant(variant: Int) {
+        engine.setPitchVariant(variant)
+    }
+
     // ── 內部處理 ──────────────────────────────────────────────────────────
 
     /**

@@ -200,6 +200,18 @@ class MainActivity : FlutterActivity() {
                 result.success(null)
             }
 
+            "setSoundType" -> {
+                val sound = (args["sound"] as? String) ?: "SINE"
+                metronomeService?.setSoundType(sound)
+                result.success(null)
+            }
+
+            "setPitchVariant" -> {
+                val variant = (args["variant"] as? Int) ?: 3
+                metronomeService?.setPitchVariant(variant)
+                result.success(null)
+            }
+
             else -> result.notImplemented()
         }
     }

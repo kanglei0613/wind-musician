@@ -178,8 +178,12 @@ class AppDrawer extends ConsumerWidget {
       ),
       builder: (_) => _ColorModePicker(
         current: current,
-        onChanged: (mode) {
+        onChanged: (mode) async {
           ref.read(colorModeProvider.notifier).state = mode;
+          // 持久化 Color Mode，冷啟動時從 SharedPreferences 恢復
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(AppConstants.keyColorScheme, mode.scheme.name);
+          await prefs.setString(AppConstants.keyColorBrightness, mode.brightness.name);
         },
       ),
     );

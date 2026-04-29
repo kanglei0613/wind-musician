@@ -29,6 +29,14 @@ class _PitchForkState extends State<PitchFork> {
   int _selectedOctave = 4;
   bool _sustainOn = false;
 
+  // ── 滑動手勢支援 ──────────────────────────────────────────────────────────
+  /// 每個音名格子的中心座標（在 LayoutBuilder 裡更新，不用 setState）
+  final Map<String, Offset> _noteCenters = {};
+  /// 當前六角格的邏輯半徑，用於判斷手指是否在格子範圍內
+  double _layoutHexR = 0.0;
+  /// 目前滑動手勢正在播放的音名（非持續音模式下 panEnd 時停止）
+  String? _slideNote;
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +90,7 @@ class _PitchForkState extends State<PitchFork> {
       final handle = await SoLoud.instance.play(
         source, volume: 0.0, looping: true,
       );
-      SoLoud.instance.fadeVolume(handle, 0.5, const Duration(milliseconds: 15));
+      SoLoud.instance.fadeVolume(handle, 0.9, const Duration(milliseconds: 15));
       setState(() => _activeHandles[note] = handle);
     } catch (_) {}
   }
@@ -152,6 +160,65 @@ class _PitchForkState extends State<PitchFork> {
     }
   }
 
+  // ── 滑動手勢處理 ──────────────────────────────────────────────────────────
+
+  /// 根據手指位置找最近的音名格子（距離超過 1.5×hexR 則返回 null）
+  String? _findNoteAtPosition(Offset position) {
+    if (_noteCenters.isEmpty || _layoutHexR == 0) return null;
+    String? nearest;
+    double minDist = double.infinity;
+    for (final entry in _noteCenters.entries) {
+      final dist = (position - entry.value).distance;
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = entry.key;
+      }
+    }
+    return minDist < _layoutHexR * 1.5 ? nearest : null;
+  }
+
+  /// 強制停止指定音名（不受 sustain 模式影響，用於滑動中間換格子）
+  Future<void> _stopSlideNote(String note) async {
+    final handle = _activeHandles[note];
+    if (handle == null) return;
+    setState(() => _activeHandles.remove(note));
+    try {
+      SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 30));
+      await Future.delayed(const Duration(milliseconds: 35));
+      SoLoud.instance.stop(handle);
+    } catch (_) {}
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    final note = _findNoteAtPosition(details.localPosition);
+    _slideNote = note;
+    if (note != null) {
+      // 若該格已在播放（Listener.onPointerDown 先觸發），_onNoteDown 會自動 no-op
+      _onNoteDown(note);
+    }
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    final note = _findNoteAtPosition(details.localPosition);
+    if (note == null || note == _slideNote) return;
+    // 切換到新格子：先強制停止舊音（繞過 sustain），再播放新音
+    final prev = _slideNote;
+    _slideNote = note;
+    if (prev != null) _stopSlideNote(prev); // unawaited
+    _onNoteDown(note);                       // unawaited
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    // 遵守 sustain 邏輯：sustain on → 最後一格繼續響；sustain off → 停止
+    if (_slideNote != null) _onNoteUp(_slideNote!);
+    _slideNote = null;
+  }
+
+  void _onPanCancel() {
+    if (_slideNote != null && !_sustainOn) _onNoteUp(_slideNote!);
+    _slideNote = null;
+  }
+
   @override
   void dispose() {
     for (final h in _activeHandles.values) {
@@ -189,7 +256,27 @@ class _PitchForkState extends State<PitchFork> {
         final totalW6 = colStep * 5 + hexW;
         final x1Start = (w - totalW6) / 2 + hexW / 2;
 
-        return Container(
+        // 更新格子中心座標（供滑動手勢 hit-testing 使用；不呼叫 setState）
+        _layoutHexR = hexR;
+        _noteCenters.clear();
+        // 排 0：C C# D D# E
+        for (int i = 0; i < _row0.length; i++) {
+          _noteCenters[_row0[i]] = Offset(x0Start + i * colStep, y0);
+        }
+        // 排 1：B ... F
+        _noteCenters['B'] = Offset(x1Start, y1);
+        _noteCenters['F'] = Offset(x1Start + colStep * 5, y1);
+        // 排 2：A# A G# G F#
+        for (int i = 0; i < _row2.length; i++) {
+          _noteCenters[_row2[i]] = Offset(x0Start + i * colStep, y2);
+        }
+
+        return GestureDetector(
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          onPanCancel: _onPanCancel,
+          child: Container(
           decoration: BoxDecoration(
             color: cs.surface,
             borderRadius: BorderRadius.circular(16),
@@ -324,6 +411,7 @@ class _PitchForkState extends State<PitchFork> {
               }),
             ],
           ),
+          ), // GestureDetector
         );
       },
     );

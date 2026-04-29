@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/constants/app_constants.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
@@ -83,6 +84,12 @@ class _MetronomeState extends State<Metronome>
   Timer? _longPressTimer;
   int _longPressCount = 0;
 
+  // ── 音色 / 音高變體 ──────────────────────────────────────────────────────
+  /// 目前選擇的音色：'SINE' | 'WOODBLOCK' | 'STICK_CLICK' | 'SNARE'
+  String _soundType = 'SINE';
+  /// 目前選擇的音高變體（1~5，3 為預設）
+  int _pitchVariant = 3;
+
   int get _activeNumerator =>
       _sectionMode ? _sections[_currentSectionIndex].numerator : _numerator;
   int get _activeDenominator =>
@@ -99,6 +106,7 @@ class _MetronomeState extends State<Metronome>
       CurvedAnimation(parent: _animController, curve: Curves.easeOut),
     );
     _initAudio();
+    _loadSoundPrefs();
 
     // Android：訂閱 AudioFocus 變化事件
     // 當螢幕錄影工具等搶走 AudioFocus 時，自動暫停 UI 狀態（音效由 Native 已停止）
@@ -157,12 +165,49 @@ class _MetronomeState extends State<Metronome>
     }
   }
 
+  // ── 音色 / 音高持久化 ────────────────────────────────────────────────────
+
+  /// 從 SharedPreferences 讀取上次選擇的音色與音高，並同步至 Native 引擎。
+  Future<void> _loadSoundPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedSound   = prefs.getString(AppConstants.keyMetronomeSoundType) ?? 'SINE';
+    final savedVariant = prefs.getInt(AppConstants.keyMetronomePitchVariant) ?? 3;
+    if (!mounted) return;
+    setState(() {
+      _soundType    = savedSound;
+      _pitchVariant = savedVariant;
+    });
+    if (Platform.isAndroid) {
+      await _nativeChannel.setSoundType(savedSound);
+      await _nativeChannel.setPitchVariant(savedVariant);
+    }
+  }
+
+  /// 切換音色，通知 Native 並存入 SharedPreferences。
+  Future<void> _setSoundType(String type) async {
+    setState(() => _soundType = type);
+    if (Platform.isAndroid) await _nativeChannel.setSoundType(type);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.keyMetronomeSoundType, type);
+  }
+
+  /// 切換音高變體（1~5），通知 Native 並存入 SharedPreferences。
+  Future<void> _setPitchVariant(int variant) async {
+    setState(() => _pitchVariant = variant);
+    if (Platform.isAndroid) await _nativeChannel.setPitchVariant(variant);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(AppConstants.keyMetronomePitchVariant, variant);
+  }
+
   void _adjustBpm(int delta) {
     setState(() {
       _bpm = (_bpm + delta).clamp(
         AppConstants.metronomeMinBpm,
         AppConstants.metronomeMaxBpm,
       );
+      // Bug 4：BPM 改變時重置拍位，確保下一個 onBeat 回呼算出 beat=0（強拍）
+      // 等同於 _start() 的初始狀態，_onBeat 內 nextBeat = (-1+1)%n = 0
+      if (_isPlaying) _currentBeat = -1;
     });
     if (_isPlaying) {
       if (Platform.isAndroid) {
@@ -621,6 +666,22 @@ class _MetronomeState extends State<Metronome>
               ),
             ),
           ],
+
+          const SizedBox(height: 6),
+
+          // 音色選擇器
+          _SoundTypeSelector(
+            current: _soundType,
+            onChanged: _setSoundType,
+          ),
+
+          const SizedBox(height: 4),
+
+          // 音高變體選擇器（1~5）
+          _PitchVariantSelector(
+            current: _pitchVariant,
+            onChanged: _setPitchVariant,
+          ),
 
           const SizedBox(height: 4),
 
@@ -1357,6 +1418,153 @@ class _MiniListScrollPickerState extends State<_MiniListScrollPicker> {
           },
         ),
       ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  音色選擇器（Metronome Feature 5）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// 音色選項定義：(soundTypeKey, 顯示標籤)
+const _kSoundOptions = [
+  ('SINE',        '正弦波'),
+  ('WOODBLOCK',   '木魚'),
+  ('STICK_CLICK', '鼓棒'),
+  ('SNARE',       '小鼓'),
+];
+
+/// 水平排列的音色選擇器，每個選項是一個小膠囊按鈕。
+class _SoundTypeSelector extends StatelessWidget {
+  final String current;
+  final ValueChanged<String> onChanged;
+
+  const _SoundTypeSelector({
+    required this.current,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: _kSoundOptions.map((opt) {
+        final key        = opt.$1;
+        final label      = opt.$2;
+        final isSelected = key == current;
+        return GestureDetector(
+          onTap: () => onChanged(key),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? cs.primary.withAlpha(45)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: isSelected
+                    ? cs.primary
+                    : cs.surfaceContainerHighest,
+                width: 1,
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? cs.primary : cs.onSurfaceVariant,
+                fontSize: 10,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  音高變體選擇器（1~5）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// 各音高變體的強拍頻率標籤（顯示在數字下方）
+const _kPitchLabels = {
+  1: '500Hz',
+  2: '700Hz',
+  3: '1kHz',
+  4: '1.4kHz',
+  5: '2kHz',
+};
+
+/// 水平排列的音高變體選擇器（1~5），1 最低，5 最高。
+class _PitchVariantSelector extends StatelessWidget {
+  final int current;
+  final ValueChanged<int> onChanged;
+
+  const _PitchVariantSelector({
+    required this.current,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (i) {
+        final variant    = i + 1;
+        final isSelected = variant == current;
+        final freqLabel  = _kPitchLabels[variant] ?? '';
+        return GestureDetector(
+          onTap: () => onChanged(variant),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: 36,
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? cs.primary.withAlpha(45)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: isSelected
+                    ? cs.primary
+                    : cs.surfaceContainerHighest,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$variant',
+                  style: TextStyle(
+                    color: isSelected ? cs.primary : cs.onSurface,
+                    fontSize: 13,
+                    fontWeight: isSelected
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  freqLabel,
+                  style: TextStyle(
+                    color: isSelected
+                        ? cs.primary.withAlpha(200)
+                        : cs.onSurfaceVariant,
+                    fontSize: 7,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 }

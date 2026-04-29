@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'firebase_options.dart';
 import 'shared/constants/app_constants.dart';
+import 'shared/theme/color_mode_provider.dart';
 
 void main() async {
   // 1. Flutter engine
@@ -39,12 +40,27 @@ void main() async {
       ? Locale(savedLocale)
       : const Locale('zh');
 
+  // 5b. 讀取已儲存的 Color Mode（scheme + brightness）
+  final savedScheme = prefs.getString(AppConstants.keyColorScheme);
+  final savedBrightness = prefs.getString(AppConstants.keyColorBrightness);
+  final initialColorMode = ColorMode(
+    scheme: AppColorScheme.values.firstWhere(
+      (e) => e.name == savedScheme,
+      orElse: () => AppColorScheme.black,
+    ),
+    brightness: AppBrightness.values.firstWhere(
+      (e) => e.name == savedBrightness,
+      orElse: () => AppBrightness.dark,
+    ),
+  );
+
   // 6. 啟動 app
   runZonedGuarded(
     () => runApp(
       ProviderScope(
         overrides: [
           localeProvider.overrideWith((ref) => initialLocale),
+          colorModeProvider.overrideWith((ref) => initialColorMode),
         ],
         child: const MyApp(),
       ),

@@ -100,6 +100,28 @@ class NativeMetronomeChannel {
     }
   }
 
+  /// 切換音色（播放中也可呼叫，Android 端在 audioThread 熱替換 AudioTrack）。
+  ///
+  /// @param soundType  "SINE" | "WOODBLOCK" | "STICK_CLICK" | "SNARE"
+  Future<void> setSoundType(String soundType) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod<void>('setSoundType', {'sound': soundType});
+    } on PlatformException catch (e) {
+      throw Exception('音色切換失敗：${e.message}');
+    }
+  }
+
+  /// 切換音高變體（1~5，1 最低、5 最高）。
+  Future<void> setPitchVariant(int variant) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod<void>('setPitchVariant', {'variant': variant});
+    } on PlatformException catch (e) {
+      throw Exception('音高變體切換失敗：${e.message}');
+    }
+  }
+
   // ── 內部處理 ────────────────────────────────────────────────────────────
 
   /// 接收來自 Native 的方法呼叫。

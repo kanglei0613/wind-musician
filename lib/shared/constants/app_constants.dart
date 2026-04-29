@@ -115,6 +115,14 @@ class AppConstants {
   static const String keyTunerReference = 'tuner_reference';
   /// 節拍器 BPM
   static const String keyMetronomeBpm = 'metronome_bpm';
+  /// 色彩主題（AppColorScheme.name）
+  static const String keyColorScheme = 'color_scheme';
+  /// 亮暗模式（AppBrightness.name）
+  static const String keyColorBrightness = 'color_brightness';
+  /// 節拍器音色（SINE / WOODBLOCK / STICK_CLICK / SNARE）
+  static const String keyMetronomeSoundType = 'metronome_sound_type';
+  /// 節拍器音高變體（1~5）
+  static const String keyMetronomePitchVariant = 'metronome_pitch_variant';
   /// 是否為 Pro 用戶（從 Supabase 同步過來）
   static const String keyIsPro = 'is_pro';
   /// 本月已使用的 AI 分析次數

@@ -9,8 +9,12 @@ import android.os.HandlerThread
 import android.os.Process
 import android.os.SystemClock
 import kotlin.math.PI
+import kotlin.math.exp
 import kotlin.math.roundToInt
 import kotlin.math.sin
+
+// ── 音色類型 ─────────────────────────────────────────────────────────────────
+enum class SoundType { SINE, WOODBLOCK, STICK_CLICK, SNARE }
 
 /**
  * MetronomeEngine
@@ -19,24 +23,28 @@ import kotlin.math.sin
  *   1. 在高優先級 HandlerThread 上排程每一拍
  *   2. 以 AudioTrack（MODE_STATIC + PCM 短波形）播放打擊音
  *   3. 使用 SystemClock.elapsedRealtime() 做絕對時間補償，消除累積漂移
- *
- * 設計原則：
- *   - 不依賴 UI 執行緒，所有音訊操作均在 audioThread 執行
- *   - 每拍計算「應到時間 - 實際時間」作為下一個 Handler.postDelayed 的延遲
- *   - AudioTrack 使用 MODE_STATIC：波形預先寫入，play() 零延遲觸發
+ *   4. 支援 4 種音色 × 5 個音高變體（強拍/弱拍各一組 track）
  *
  * @param onBeat  每拍回呼（在 audioThread 執行，由呼叫方負責切換執行緒）
  */
 class MetronomeEngine(private val onBeat: () -> Unit) {
 
+    // ── 音高變體頻率表（強拍 Hz, 弱拍 Hz）──────────────────────────────────
+    // variant 1 = 最低，5 = 最高；弱拍 = 強拍 × 0.75
+    private val pitchVariantFreqs = mapOf(
+        1 to Pair(500.0,  375.0),
+        2 to Pair(700.0,  525.0),
+        3 to Pair(1000.0, 750.0),   // 預設
+        4 to Pair(1400.0, 1050.0),
+        5 to Pair(2000.0, 1500.0),
+    )
+
     // ── 音訊執行緒 ─────────────────────────────────────────────────────────
-    /** 高優先級音訊執行緒（與系統音訊服務同優先級）*/
     private val audioThread = HandlerThread(
         "MetronomeAudioThread",
         Process.THREAD_PRIORITY_AUDIO
     ).also { it.start() }
 
-    /** 綁定在 audioThread 上的 Handler，用於排程拍點 */
     private val handler = Handler(audioThread.looper)
 
     // ── 狀態 ──────────────────────────────────────────────────────────────
@@ -44,75 +52,64 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
     @Volatile private var bpm: Int = 120
     @Volatile private var numerator: Int = 4
     @Volatile private var denominator: Int = 4
+    @Volatile private var currentSoundType: SoundType = SoundType.SINE
+    @Volatile private var currentPitchVariant: Int = 3   // 1~5
 
-    /** 播放起始的 elapsedRealtime（毫秒），用於計算每拍應到時間 */
     private var startElapsedMs: Long = 0L
-
-    /** 已排程的拍序號（從 0 開始的強拍算第 0 拍） */
     private var scheduledBeatIndex: Int = 0
 
-    // ── AudioTrack（預先建立，重複使用）────────────────────────────────────
+    // ── AudioTrack（可在運行中熱替換）────────────────────────────────────
     private val sampleRate = 44100
 
-    /** 強拍 AudioTrack（880 Hz，較響） */
-    private val strongTrack: AudioTrack = buildAudioTrack(880.0, 0.85f)
-
-    /** 弱拍 AudioTrack（660 Hz，較輕） */
-    private val weakTrack: AudioTrack = buildAudioTrack(660.0, 0.55f)
+    /** 強拍 / 弱拍 track（在 audioThread 上存取與替換）*/
+    private var strongTrack: AudioTrack = buildSoundTrack(isStrong = true)
+    private var weakTrack: AudioTrack   = buildSoundTrack(isStrong = false)
 
     // ── 公開介面 ──────────────────────────────────────────────────────────
 
-    /**
-     * 開始播放節拍器。
-     * 若已在運行中則先停止再重新開始。
-     *
-     * @param initialBpm       BPM
-     * @param initialNumerator 分子（每小節拍數）
-     * @param initialDenominator 分母（幾分音符為一拍）
-     */
     fun start(initialBpm: Int, initialNumerator: Int, initialDenominator: Int) {
-        stop() // 確保舊的排程已清除
-        bpm = initialBpm
-        numerator = initialNumerator
+        stop()
+        bpm         = initialBpm
+        numerator   = initialNumerator
         denominator = initialDenominator
-        isRunning = true
-        startElapsedMs = SystemClock.elapsedRealtime()
+        isRunning   = true
+        startElapsedMs    = SystemClock.elapsedRealtime()
         scheduledBeatIndex = 0
-        // 立即在 audioThread 上打第 0 拍，再排程下一拍
         handler.post { fireBeatAndScheduleNext() }
     }
 
-    /**
-     * 停止節拍器，移除所有待執行的 Runnable。
-     */
     fun stop() {
         isRunning = false
         handler.removeCallbacksAndMessages(null)
     }
 
-    /**
-     * 動態更新 BPM（播放中可呼叫）。
-     * 重置時間基準，避免舊間隔殘留。
-     */
     fun updateBpm(newBpm: Int) {
         bpm = newBpm
         if (isRunning) resetTiming()
     }
 
-    /**
-     * 動態更新拍號（播放中可呼叫）。
-     * 重置時間基準。
-     */
     fun updateTimeSig(newNumerator: Int, newDenominator: Int) {
-        numerator = newNumerator
+        numerator   = newNumerator
         denominator = newDenominator
         if (isRunning) resetTiming()
     }
 
     /**
-     * 釋放所有資源（服務銷毀時呼叫）。
-     * 呼叫後此物件不可再使用。
+     * 切換音色（運行中也可呼叫，在 audioThread 熱替換 AudioTrack）。
      */
+    fun setSoundType(newType: SoundType) {
+        currentSoundType = newType
+        rebuildTracks()
+    }
+
+    /**
+     * 切換音高變體 1~5（運行中也可呼叫）。
+     */
+    fun setPitchVariant(variant: Int) {
+        currentPitchVariant = variant.coerceIn(1, 5)
+        rebuildTracks()
+    }
+
     fun release() {
         stop()
         audioThread.quit()
@@ -120,115 +117,203 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
         releaseTrack(weakTrack)
     }
 
-    // ── 內部實作 ──────────────────────────────────────────────────────────
+    // ── 內部排程 ──────────────────────────────────────────────────────────
 
-    /**
-     * 重置時間基準（BPM 或拍號改變時呼叫）。
-     * 從「現在」起重新計算每拍的到達時間。
-     */
     private fun resetTiming() {
         handler.removeCallbacksAndMessages(null)
-        startElapsedMs = SystemClock.elapsedRealtime()
+        startElapsedMs    = SystemClock.elapsedRealtime()
         scheduledBeatIndex = 0
         handler.post { fireBeatAndScheduleNext() }
     }
 
     /**
-     * 核心排程函式：播放本拍音效 → 回呼 Flutter → 排程下一拍。
-     *
-     * 絕對時間補償原理：
-     *   intervalMs  = 60000 / bpm * (4 / denominator)   // 每拍毫秒數
-     *   targetMs    = beatIndex * intervalMs             // 第 N 拍的「應到時間」
-     *   elapsedMs   = now - startElapsedMs               // 實際已過時間
-     *   delayMs     = targetMs - elapsedMs               // 距離下一拍的剩餘時間
-     *
-     * 若 delayMs < 0 代表已超時，立即執行（clamp to 0）。
+     * 在 audioThread 上重建 strongTrack / weakTrack，
+     * 先建新的再釋放舊的，確保不中斷播放中的拍點。
      */
+    private fun rebuildTracks() {
+        handler.post {
+            val oldStrong = strongTrack
+            val oldWeak   = weakTrack
+            strongTrack = buildSoundTrack(isStrong = true)
+            weakTrack   = buildSoundTrack(isStrong = false)
+            releaseTrack(oldStrong)
+            releaseTrack(oldWeak)
+        }
+    }
+
     private fun fireBeatAndScheduleNext() {
         if (!isRunning) return
 
-        // ① 取得本拍在小節中的位置（0 = 強拍）
         val beatInMeasure = scheduledBeatIndex % numerator
-        val isDownBeat = beatInMeasure == 0
+        val isDownBeat    = beatInMeasure == 0
 
-        // ② 播放對應音效
         playClick(if (isDownBeat) strongTrack else weakTrack)
-
-        // ③ 通知 Flutter UI（此回呼在 audioThread，Flutter 側需切換至 main isolate）
         onBeat()
 
-        // ④ 計算下一拍的精確延遲
         val intervalMs = (60_000.0 / bpm) * (4.0 / denominator)
         scheduledBeatIndex++
-        val targetMs = (scheduledBeatIndex * intervalMs).roundToInt().toLong()
+        val targetMs  = (scheduledBeatIndex * intervalMs).roundToInt().toLong()
         val elapsedMs = SystemClock.elapsedRealtime() - startElapsedMs
-        // clamp(0, 2*interval)：防止極端情況導致連拍或過長停頓
-        val delayMs = (targetMs - elapsedMs).coerceIn(0L, (intervalMs * 2).toLong())
+        val delayMs   = (targetMs - elapsedMs).coerceIn(0L, (intervalMs * 2).toLong())
 
         handler.postDelayed({ fireBeatAndScheduleNext() }, delayMs)
     }
 
-    /**
-     * 觸發 AudioTrack 播放（MODE_STATIC 需要先 stop + reloadStaticData + play）。
-     *
-     * MODE_STATIC 的限制：一個 AudioTrack 無法同時重疊播放，
-     * 但節拍器的音效時長（~100ms）遠短於拍間隔，實務上不會衝突。
-     */
     private fun playClick(track: AudioTrack) {
         try {
             track.stop()
             track.reloadStaticData()
             track.play()
-        } catch (e: Exception) {
-            // 忽略偶發的 IllegalStateException（App 切換背景時偶爾發生）
+        } catch (_: Exception) { }
+    }
+
+    // ── 音色合成（依 currentSoundType / currentPitchVariant 決定） ─────────
+
+    /**
+     * 根據目前 soundType 與 pitchVariant 建立一個 AudioTrack。
+     *
+     * @param isStrong  true = 強拍頻率，false = 弱拍頻率
+     */
+    private fun buildSoundTrack(isStrong: Boolean): AudioTrack {
+        val (strongFreq, weakFreq) =
+            pitchVariantFreqs[currentPitchVariant] ?: Pair(1000.0, 750.0)
+        val freq = if (isStrong) strongFreq else weakFreq
+        val amp  = if (isStrong) 0.85f else 0.55f
+
+        return when (currentSoundType) {
+            SoundType.SINE       -> buildSineTrack(freq, amp)
+            SoundType.WOODBLOCK  -> buildWoodblockTrack(freq)
+            SoundType.STICK_CLICK-> buildStickClickTrack(freq)
+            SoundType.SNARE      -> buildSnareTrack(freq)
         }
     }
 
+    // ── 正弦波（原始設計）────────────────────────────────────────────────
     /**
-     * 建立預先填入 PCM 資料的 AudioTrack（MODE_STATIC）。
-     *
-     * 波形設計：
-     *   - 前 5ms  線性淡入（attack），避免爆音
-     *   - 中 50ms 衰減（decay），模擬打擊音的 envelope
-     *   - 後段  靜音，總長 100ms
-     *
-     * @param freqHz  基頻（Hz）
-     * @param peakAmp 峰值振幅（0.0 ~ 1.0）
+     * 波形：正弦，Attack 5ms 淡入 → Decay 55ms 線性衰減 → 靜音，總長 100ms
      */
-    private fun buildAudioTrack(freqHz: Double, peakAmp: Float): AudioTrack {
-        val durationMs = 100                          // 每個 click 的總時長（毫秒）
-        val numSamples = sampleRate * durationMs / 1000  // = 4410 個取樣點
+    private fun buildSineTrack(freqHz: Double, peakAmp: Float): AudioTrack {
+        val durationMs    = 100
+        val numSamples    = sampleRate * durationMs / 1000
+        val attackSamples = sampleRate * 5  / 1000
+        val decaySamples  = sampleRate * 55 / 1000
         val pcm = ShortArray(numSamples)
 
-        val attackSamples = sampleRate * 5 / 1000    // 5ms attack
-        val decaySamples  = sampleRate * 55 / 1000   // 55ms decay（到靜音）
+        for (i in 0 until numSamples) {
+            val envelope = when {
+                i < attackSamples ->
+                    peakAmp * i.toFloat() / attackSamples
+                i < attackSamples + decaySamples ->
+                    peakAmp * (1f - (i - attackSamples).toFloat() / decaySamples)
+                else -> 0f
+            }
+            pcm[i] = (sin(2.0 * PI * freqHz * i / sampleRate) * envelope * Short.MAX_VALUE)
+                .toInt().toShort()
+        }
+        return createAudioTrack(pcm)
+    }
+
+    // ── 木魚（Woodblock）─────────────────────────────────────────────────
+    /**
+     * 波形：高頻正弦 + 指數衰減，總長 80ms，前 30ms 快速衰減。
+     *
+     * 各音高變體頻率（強拍/弱拍）：
+     *   1: 500/375 Hz  2: 700/525 Hz  3: 1000/750 Hz（預設）
+     *   4: 1400/1050 Hz  5: 2000/1500 Hz
+     */
+    private fun buildWoodblockTrack(freqHz: Double): AudioTrack {
+        val durationMs   = 80
+        val numSamples   = sampleRate * durationMs / 1000
+        val decaySamples = sampleRate * 30 / 1000   // 30ms 快速衰減
+        val peakAmp      = 0.9f
+        val pcm = ShortArray(numSamples)
 
         for (i in 0 until numSamples) {
-            // 計算此取樣點的振幅包絡
             val envelope = when {
-                i < attackSamples -> {
-                    // Attack：線性從 0 升到 peakAmp
-                    peakAmp * i.toFloat() / attackSamples
+                i < decaySamples -> {
+                    // 指數衰減：e^(-5t)，t = i/decaySamples
+                    peakAmp * exp(-5.0 * i.toDouble() / decaySamples).toFloat()
                 }
-                i < attackSamples + decaySamples -> {
-                    // Decay：線性從 peakAmp 降到 0
-                    val decayProgress = (i - attackSamples).toFloat() / decaySamples
-                    peakAmp * (1.0f - decayProgress)
-                }
-                else -> 0.0f  // 靜音段
+                else -> 0f
             }
-
-            // 正弦波取樣
-            val sinValue = sin(2.0 * PI * freqHz * i / sampleRate).toFloat()
-            pcm[i] = (sinValue * envelope * Short.MAX_VALUE).toInt().toShort()
+            pcm[i] = (sin(2.0 * PI * freqHz * i / sampleRate) * envelope * Short.MAX_VALUE)
+                .toInt().toShort()
         }
+        return createAudioTrack(pcm)
+    }
 
-        // 計算 MODE_STATIC 需要的 buffer size
+    // ── 鼓棒敲擊（Stick Click）────────────────────────────────────────────
+    /**
+     * 波形：超短高頻 click，15ms 極快指數衰減，總長 50ms。
+     *
+     * 各音高變體頻率（強拍/弱拍）：
+     *   1: 500/375 Hz  2: 700/525 Hz  3: 1000/750 Hz
+     *   4: 1400/1050 Hz  5: 2000/1500 Hz
+     */
+    private fun buildStickClickTrack(freqHz: Double): AudioTrack {
+        val durationMs   = 50
+        val numSamples   = sampleRate * durationMs / 1000
+        val decaySamples = sampleRate * 15 / 1000   // 15ms 極短衰減
+        val peakAmp      = 0.9f
+        val pcm = ShortArray(numSamples)
+
+        for (i in 0 until numSamples) {
+            val envelope = when {
+                i < decaySamples -> {
+                    // 更陡的指數衰減 e^(-8t)
+                    peakAmp * exp(-8.0 * i.toDouble() / decaySamples).toFloat()
+                }
+                else -> 0f
+            }
+            pcm[i] = (sin(2.0 * PI * freqHz * i / sampleRate) * envelope * Short.MAX_VALUE)
+                .toInt().toShort()
+        }
+        return createAudioTrack(pcm)
+    }
+
+    // ── 小鼓（Snare）─────────────────────────────────────────────────────
+    /**
+     * 波形：低頻正弦（60%）+ 白噪音（40%），60ms 線性衰減，總長 100ms。
+     *
+     * 各音高變體頻率（強拍/弱拍）：
+     *   1: 500/375 Hz  2: 700/525 Hz  3: 1000/750 Hz
+     *   4: 1400/1050 Hz  5: 2000/1500 Hz
+     */
+    private fun buildSnareTrack(freqHz: Double): AudioTrack {
+        val durationMs   = 100
+        val numSamples   = sampleRate * durationMs / 1000
+        val decaySamples = sampleRate * 60 / 1000   // 60ms 線性衰減
+        val peakAmp      = 0.9f
+        val noiseRatio   = 0.4f
+        val random       = java.util.Random(42L)     // 固定 seed，確保每次相同
+        val pcm = ShortArray(numSamples)
+
+        for (i in 0 until numSamples) {
+            val envelope = when {
+                i < decaySamples ->
+                    peakAmp * (1f - i.toFloat() / decaySamples)
+                else -> 0f
+            }
+            val sinValue   = sin(2.0 * PI * freqHz * i / sampleRate).toFloat()
+            val noiseValue = random.nextFloat() * 2f - 1f   // [-1, 1]
+            val mixed      = sinValue * (1f - noiseRatio) + noiseValue * noiseRatio
+            pcm[i] = (mixed * envelope * Short.MAX_VALUE).toInt().toShort()
+        }
+        return createAudioTrack(pcm)
+    }
+
+    // ── AudioTrack 建立工具 ────────────────────────────────────────────────
+
+    /**
+     * 將 PCM 資料包裝成 MODE_STATIC AudioTrack。
+     * 波形預先寫入，play() 呼叫延遲極低。
+     */
+    private fun createAudioTrack(pcm: ShortArray): AudioTrack {
         val bufferSize = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
-        ).coerceAtLeast(numSamples * 2) // 每個 Short = 2 bytes
+        ).coerceAtLeast(pcm.size * 2)
 
         val track = AudioTrack.Builder()
             .setAudioAttributes(
@@ -248,17 +333,14 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
             .setTransferMode(AudioTrack.MODE_STATIC)
             .build()
 
-        // 將 PCM 資料預先寫入 buffer（MODE_STATIC 只需寫一次）
-        track.write(pcm, 0, numSamples)
-
+        track.write(pcm, 0, pcm.size)
         return track
     }
 
-    /** 安全釋放 AudioTrack */
     private fun releaseTrack(track: AudioTrack) {
         try {
             track.stop()
             track.release()
-        } catch (_: Exception) {}
+        } catch (_: Exception) { }
     }
 }
