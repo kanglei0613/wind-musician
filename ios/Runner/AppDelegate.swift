@@ -15,7 +15,12 @@ import UIKit
 
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-        // 初始化節拍器 Channel
-        metronomePlugin.setup(with: engineBridge.binaryMessenger)
+
+        // pluginRegistry.registrar(forPlugin:) 是 Flutter embedding 保證存在的 API，
+        // 用 messenger() 取得 FlutterBinaryMessenger，比直接存取 binaryMessenger 屬性更安全
+        let messenger = engineBridge.pluginRegistry
+            .registrar(forPlugin: "MetronomePlugin")
+            .messenger()
+        metronomePlugin.setup(with: messenger)
     }
 }
