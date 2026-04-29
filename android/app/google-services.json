@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "268061403551-vcos9j4ro96prchrimests8pbfkr76s7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kanglei.wind_musician",
+            "certificate_hash": "bd2929f503547bbd0f6c14ebcdf248e91e1cfffe"
+          }
+        },
+        {
           "client_id": "268061403551-j2906p581sa8m35q3thh6roj809okk7s.apps.googleusercontent.com",
           "client_type": 3
         }
