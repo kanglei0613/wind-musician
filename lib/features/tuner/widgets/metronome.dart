@@ -177,7 +177,7 @@ class _MetronomeState extends State<Metronome>
       _soundType    = savedSound;
       _pitchVariant = savedVariant;
     });
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS) {
       await _nativeChannel.setSoundType(savedSound);
       await _nativeChannel.setPitchVariant(savedVariant);
     }
@@ -186,7 +186,7 @@ class _MetronomeState extends State<Metronome>
   /// 切換音色，通知 Native 並存入 SharedPreferences。
   Future<void> _setSoundType(String type) async {
     setState(() => _soundType = type);
-    if (Platform.isAndroid) await _nativeChannel.setSoundType(type);
+    if (Platform.isAndroid || Platform.isIOS) await _nativeChannel.setSoundType(type);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(AppConstants.keyMetronomeSoundType, type);
   }
@@ -194,7 +194,7 @@ class _MetronomeState extends State<Metronome>
   /// 切換音高變體（1~5），通知 Native 並存入 SharedPreferences。
   Future<void> _setPitchVariant(int variant) async {
     setState(() => _pitchVariant = variant);
-    if (Platform.isAndroid) await _nativeChannel.setPitchVariant(variant);
+    if (Platform.isAndroid || Platform.isIOS) await _nativeChannel.setPitchVariant(variant);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConstants.keyMetronomePitchVariant, variant);
   }
@@ -210,11 +210,11 @@ class _MetronomeState extends State<Metronome>
       if (_isPlaying) _currentBeat = -1;
     });
     if (_isPlaying) {
-      if (Platform.isAndroid) {
-        // Android：通知 Native 更新 BPM，引擎內部會重置時間基準
+      if (Platform.isAndroid || Platform.isIOS) {
+        // Android / iOS：通知 Native 更新 BPM，引擎內部重置時間基準
         _nativeChannel.updateBpm(_bpm);
       } else {
-        // iOS / Dart 路徑：重置時間基準，重新排程
+        // 桌面 / Web Dart 路徑：重置時間基準，重新排程
         _timer?.cancel();
         _playStartTime = DateTime.now();
         _scheduledBeatIndex = 0;
@@ -330,23 +330,21 @@ class _MetronomeState extends State<Metronome>
       _sectionFlash = false;
     });
 
-    if (Platform.isAndroid) {
-      // Android 路徑：先訂閱 onBeat Stream，再啟動原生服務
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Android / iOS 路徑：先訂閱 onBeat Stream，再啟動原生引擎
       // 注意：必須先 listen 再 start，否則可能漏掉 Native 發出的第一拍事件
       _nativeBeatSub?.cancel();
       _nativeBeatSub = _nativeChannel.onBeat.listen((_) {
         if (mounted && _isPlaying) _onBeat();
       });
-      // 啟動前景服務：Native 引擎開始排程，第一拍音效 + onBeat 事件由 Native 發出
       _nativeChannel.start(
         bpm: _bpm,
         numerator: _activeNumerator,
         denominator: _activeDenominator,
       );
       // ⚠️ 不在此呼叫 _onBeat()：Native 會透過 stream 發出第一拍事件
-      //    避免 Flutter 手動呼叫 + Native 事件造成雙重計拍
     } else {
-      // iOS / Dart 路徑：使用 Dart Timer + SoLoud
+      // 桌面 / Web Dart 路徑：使用 Dart Timer + SoLoud
       _playStartTime = DateTime.now();
       _scheduledBeatIndex = 0;
       _onBeat();
@@ -355,13 +353,13 @@ class _MetronomeState extends State<Metronome>
   }
 
   void _stop() {
-    if (Platform.isAndroid) {
-      // Android 路徑：通知 Native 停止服務
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Android / iOS 路徑：通知 Native 停止引擎
       _nativeChannel.stop();
       _nativeBeatSub?.cancel();
       _nativeBeatSub = null;
     } else {
-      // iOS / Dart 路徑：取消 Dart Timer
+      // 桌面 / Web Dart 路徑：取消 Dart Timer
       _timer?.cancel();
       _playStartTime = null;
       _scheduledBeatIndex = 0;
@@ -432,12 +430,12 @@ class _MetronomeState extends State<Metronome>
           _sectionFlash = true;
         });
 
-        if (Platform.isAndroid) {
-          // Android：通知 Native 更新拍號（引擎內部重置時間基準）
+        if (Platform.isAndroid || Platform.isIOS) {
+          // Android / iOS：通知 Native 更新拍號（引擎內部重置時間基準）
           final newSection = _sections[nextSection];
           _nativeChannel.updateTimeSig(newSection.numerator, newSection.denominator);
         } else {
-          // iOS / Dart 路徑：重置時間基準，新拍號的 interval 從這一刻起算
+          // 桌面 / Web Dart 路徑：重置時間基準，新拍號的 interval 從這一刻起算
           _playStartTime = DateTime.now();
           _scheduledBeatIndex = 0;
         }
