@@ -435,4 +435,5 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get recorderSaveNameRequired => '녹음 이름을 입력해주세요';
-}
+
+ 

@@ -37,6 +37,14 @@ class _PitchForkState extends State<PitchFork> {
   /// 目前滑動手勢正在播放的音名（非持續音模式下 panEnd 時停止）
   String? _slideNote;
 
+  // ── 旋轉手勢（八度）─────────────────────────────────────────────────────
+  /// Widget 中心座標（LayoutBuilder 裡更新）
+  Offset _widgetCenter = Offset.zero;
+  /// 上一次 pan 位置（計算角度用）
+  Offset? _prevPanPos;
+  /// 累計旋轉角度（度）
+  double _rotateAccum = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -190,31 +198,55 @@ class _PitchForkState extends State<PitchFork> {
   }
 
   void _onPanStart(DragStartDetails details) {
+    _prevPanPos = details.localPosition;
+    _rotateAccum = 0.0;
+
     final note = _findNoteAtPosition(details.localPosition);
     _slideNote = note;
-    if (note != null) {
-      // 若該格已在播放（Listener.onPointerDown 先觸發），_onNoteDown 會自動 no-op
-      _onNoteDown(note);
-    }
+    if (note != null) _onNoteDown(note);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    final note = _findNoteAtPosition(details.localPosition);
+    final cur = details.localPosition;
+
+    // ── 旋轉角度追蹤 ────────────────────────────────────────────────
+    if (_prevPanPos != null && _widgetCenter != Offset.zero) {
+      final prev = _prevPanPos! - _widgetCenter;
+      final next = cur - _widgetCenter;
+      // cross product 符號決定方向，dot product 加 atan2 取角度
+      final cross = prev.dx * next.dy - prev.dy * next.dx;
+      final dot   = prev.dx * next.dx + prev.dy * next.dy;
+      final delta = math.atan2(cross, dot) * 180 / math.pi;
+      _rotateAccum += delta;
+      if (_rotateAccum >= 360) {
+        _rotateAccum -= 360;
+        _changeOctave(1);   // 順時針一圈 → oct +1
+      } else if (_rotateAccum <= -360) {
+        _rotateAccum += 360;
+        _changeOctave(-1);  // 逆時針一圈 → oct -1
+      }
+    }
+    _prevPanPos = cur;
+
+    // ── 滑動換音 ────────────────────────────────────────────────────
+    final note = _findNoteAtPosition(cur);
     if (note == null || note == _slideNote) return;
-    // 切換到新格子：先強制停止舊音（繞過 sustain），再播放新音
     final prev = _slideNote;
     _slideNote = note;
-    if (prev != null) _stopSlideNote(prev); // unawaited
-    _onNoteDown(note);                       // unawaited
+    if (prev != null) _stopSlideNote(prev);
+    _onNoteDown(note);
   }
 
   void _onPanEnd(DragEndDetails details) {
-    // 遵守 sustain 邏輯：sustain on → 最後一格繼續響；sustain off → 停止
+    _prevPanPos = null;
+    _rotateAccum = 0.0;
     if (_slideNote != null) _onNoteUp(_slideNote!);
     _slideNote = null;
   }
 
   void _onPanCancel() {
+    _prevPanPos = null;
+    _rotateAccum = 0.0;
     if (_slideNote != null && !_sustainOn) _onNoteUp(_slideNote!);
     _slideNote = null;
   }
@@ -239,7 +271,7 @@ class _PitchForkState extends State<PitchFork> {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
 
-        final hexR = (w / 6 / 2) * 0.68;
+        final hexR = (w / 6 / 2) * 0.90;
         final hexW = hexR * math.sqrt(3);
         final hexH = hexR * 2;
         final colStep = hexW * 1.05;
@@ -256,7 +288,8 @@ class _PitchForkState extends State<PitchFork> {
         final totalW6 = colStep * 5 + hexW;
         final x1Start = (w - totalW6) / 2 + hexW / 2;
 
-        // 更新格子中心座標（供滑動手勢 hit-testing 使用；不呼叫 setState）
+        // 更新格子中心座標與 widget 中心（供手勢 hit-testing 使用；不呼叫 setState）
+        _widgetCenter = Offset(w / 2, h / 2);
         _layoutHexR = hexR;
         _noteCenters.clear();
         // 排 0：C C# D D# E
@@ -508,66 +541,4 @@ class _HexControl extends StatelessWidget {
           pressedColor: cs.primary,
           sharpColor: cs.surfaceContainerHighest,
           normalColor: cs.surface,
-          borderColor: isActive ? cs.primary : cs.surfaceContainerHighest,
-        ),
-        child: child,
-      ),
-    );
-  }
-}
-
-/// 六角形繪製
-class _HexPainter extends CustomPainter {
-  final bool isPressed;
-  final bool isSharp;
-  final Color pressedColor;
-  final Color sharpColor;
-  final Color normalColor;
-  final Color borderColor;
-
-  _HexPainter({
-    required this.isPressed,
-    required this.isSharp,
-    required this.pressedColor,
-    required this.sharpColor,
-    required this.normalColor,
-    required this.borderColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.height / 2 * 0.95;
-
-    final path = Path();
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 - 30) * math.pi / 180;
-      final px = cx + r * math.cos(angle);
-      final py = cy + r * math.sin(angle);
-      if (i == 0) {
-        path.moveTo(px, py);
-      } else {
-        path.lineTo(px, py);
-      }
-    }
-    path.close();
-
-    canvas.drawPath(
-      path,
-      Paint()..color = isPressed ? pressedColor : isSharp ? sharpColor : normalColor,
-    );
-
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = borderColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = isPressed ? 2 : 1,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_HexPainter old) =>
-      old.isPressed != isPressed || old.isSharp != isSharp;
-}
+          borderColor: isActive ? cs.primary : cs.surfaceContaine

@@ -484,6 +484,156 @@ class _MetronomeState extends State<Metronome>
     });
   }
 
+  void _showSoundSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final cs = Theme.of(ctx).colorScheme;
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 拖曳把手
+                  Center(
+                    child: Container(
+                      width: 36, height: 4,
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 音色
+                  Text(AppLocalizations.of(ctx)!.metronomeSound, style: TextStyle(
+                    color: cs.onSurfaceVariant, fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  )),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: _kSoundKeys.map((key) {
+                      final l10n = AppLocalizations.of(ctx)!;
+                      final label = {
+                        'SINE':        l10n.metronomeSoundSine,
+                        'WOODBLOCK':   l10n.metronomeSoundWoodblock,
+                        'STICK_CLICK': l10n.metronomeSoundStickClick,
+                        'SNARE':       l10n.metronomeSoundSnare,
+                      }[key] ?? key;
+                      final isSelected = key == _soundType;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            _setSoundType(key);
+                            setLocal(() {});
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? cs.primary.withAlpha(45)
+                                  : cs.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected ? cs.primary : Colors.transparent,
+                              ),
+                            ),
+                            child: Text(
+                              label,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: isSelected ? cs.primary : cs.onSurface,
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 音高
+                  Text(AppLocalizations.of(ctx)!.metronomePitch, style: TextStyle(
+                    color: cs.onSurfaceVariant, fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  )),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: List.generate(5, (i) {
+                      final variant = i + 1;
+                      final isSelected = variant == _pitchVariant;
+                      final freqLabel = _kPitchLabels[variant] ?? '';
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            _setPitchVariant(variant);
+                            setLocal(() {});
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? cs.primary.withAlpha(45)
+                                  : cs.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected ? cs.primary : Colors.transparent,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '$variant',
+                                  style: TextStyle(
+                                    color: isSelected ? cs.primary : cs.onSurface,
+                                    fontSize: 14,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  freqLabel,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? cs.primary.withAlpha(200)
+                                        : cs.onSurfaceVariant,
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showSectionSheet() {
     showModalBottomSheet(
       context: context,
@@ -565,21 +715,27 @@ class _MetronomeState extends State<Metronome>
                       numerator: _numerator,
                       denominator: _denominator,
                       onNumeratorChanged: (v) {
-                        setState(() => _numerator = v);
-                        // 分子改變只影響 UI 的拍點數量，不影響 Native 的間隔計算
-                        // 但需通知 Native 更新拍號以維持拍點音效的強弱分配
-                        if (_isPlaying && Platform.isAndroid) {
+                        setState(() {
+                          _numerator = v;
+                          // 切換拍號後重置到第一拍，避免畫面與聲音對不上
+                          if (_isPlaying) _currentBeat = -1;
+                        });
+                        if (_isPlaying && (Platform.isAndroid || Platform.isIOS)) {
                           _nativeChannel.updateTimeSig(v, _denominator);
                         }
                       },
                       onDenominatorChanged: (v) {
-                        setState(() => _denominator = v);
+                        setState(() {
+                          _denominator = v;
+                          // 切換拍號後重置到第一拍，避免畫面與聲音對不上
+                          if (_isPlaying) _currentBeat = -1;
+                        });
                         if (_isPlaying) {
-                          if (Platform.isAndroid) {
-                            // Android：通知 Native 更新拍號
+                          if (Platform.isAndroid || Platform.isIOS) {
+                            // Android / iOS：通知 Native 更新拍號
                             _nativeChannel.updateTimeSig(_numerator, v);
                           } else {
-                            // iOS / Dart：重置時間基準
+                            // 桌面 / Web Dart：重置時間基準
                             _timer?.cancel();
                             _playStartTime = DateTime.now();
                             _scheduledBeatIndex = 0;
@@ -616,6 +772,25 @@ class _MetronomeState extends State<Metronome>
               ),
 
               const SizedBox(width: 8),
+
+              GestureDetector(
+                onTap: _showSoundSheet,
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.graphic_eq_rounded,
+                    size: 16,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 6),
 
               GestureDetector(
                 onTap: _showSectionSheet,
@@ -664,22 +839,6 @@ class _MetronomeState extends State<Metronome>
               ),
             ),
           ],
-
-          const SizedBox(height: 6),
-
-          // 音色選擇器
-          _SoundTypeSelector(
-            current: _soundType,
-            onChanged: _setSoundType,
-          ),
-
-          const SizedBox(height: 4),
-
-          // 音高變體選擇器（1~5）
-          _PitchVariantSelector(
-            current: _pitchVariant,
-            onChanged: _setPitchVariant,
-          ),
 
           const SizedBox(height: 4),
 
@@ -1356,213 +1515,4 @@ class _MiniListScrollPicker extends StatefulWidget {
   State<_MiniListScrollPicker> createState() => _MiniListScrollPickerState();
 }
 
-class _MiniListScrollPickerState extends State<_MiniListScrollPicker> {
-  late FixedExtentScrollController _controller;
-
-  int get _currentIndex {
-    final idx = widget.values.indexOf(widget.value);
-    return idx >= 0 ? idx : 0;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = FixedExtentScrollController(initialItem: _currentIndex);
-  }
-
-  @override
-  void didUpdateWidget(_MiniListScrollPicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      _controller.jumpToItem(_currentIndex);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return SizedBox(
-      width: 32,
-      height: 48,
-      child: ListWheelScrollView.useDelegate(
-        controller: _controller,
-        itemExtent: 24,
-        perspective: 0.003,
-        diameterRatio: 1.5,
-        physics: const FixedExtentScrollPhysics(),
-        onSelectedItemChanged: (index) => widget.onChanged(widget.values[index]),
-        childDelegate: ListWheelChildBuilderDelegate(
-          childCount: widget.values.length,
-          builder: (context, index) {
-            final val = widget.values[index];
-            final isSelected = val == widget.value;
-            return Center(
-              child: Text(
-                '$val',
-                style: TextStyle(
-                  color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
-                  fontSize: isSelected ? 16 : 12,
-                  fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w400,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  音色選擇器（Metronome Feature 5）
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// 音色選項定義：(soundTypeKey, 顯示標籤)
-const _kSoundOptions = [
-  ('SINE',        '正弦波'),
-  ('WOODBLOCK',   '木魚'),
-  ('STICK_CLICK', '鼓棒'),
-  ('SNARE',       '小鼓'),
-];
-
-/// 水平排列的音色選擇器，每個選項是一個小膠囊按鈕。
-class _SoundTypeSelector extends StatelessWidget {
-  final String current;
-  final ValueChanged<String> onChanged;
-
-  const _SoundTypeSelector({
-    required this.current,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: _kSoundOptions.map((opt) {
-        final key        = opt.$1;
-        final label      = opt.$2;
-        final isSelected = key == current;
-        return GestureDetector(
-          onTap: () => onChanged(key),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? cs.primary.withAlpha(45)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isSelected
-                    ? cs.primary
-                    : cs.surfaceContainerHighest,
-                width: 1,
-              ),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? cs.primary : cs.onSurfaceVariant,
-                fontSize: 10,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  音高變體選擇器（1~5）
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// 各音高變體的強拍頻率標籤（顯示在數字下方）
-const _kPitchLabels = {
-  1: '500Hz',
-  2: '700Hz',
-  3: '1kHz',
-  4: '1.4kHz',
-  5: '2kHz',
-};
-
-/// 水平排列的音高變體選擇器（1~5），1 最低，5 最高。
-class _PitchVariantSelector extends StatelessWidget {
-  final int current;
-  final ValueChanged<int> onChanged;
-
-  const _PitchVariantSelector({
-    required this.current,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(5, (i) {
-        final variant    = i + 1;
-        final isSelected = variant == current;
-        final freqLabel  = _kPitchLabels[variant] ?? '';
-        return GestureDetector(
-          onTap: () => onChanged(variant),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            width: 36,
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? cs.primary.withAlpha(45)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isSelected
-                    ? cs.primary
-                    : cs.surfaceContainerHighest,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$variant',
-                  style: TextStyle(
-                    color: isSelected ? cs.primary : cs.onSurface,
-                    fontSize: 13,
-                    fontWeight: isSelected
-                        ? FontWeight.w700
-                        : FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  freqLabel,
-                  style: TextStyle(
-                    color: isSelected
-                        ? cs.primary.withAlpha(200)
-                        : cs.onSurfaceVariant,
-                    fontSize: 7,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
-}
+class _Mini

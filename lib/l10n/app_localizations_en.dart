@@ -437,4 +437,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recorderSaveNameRequired => 'Please enter a recording name';
-}
+
+ 

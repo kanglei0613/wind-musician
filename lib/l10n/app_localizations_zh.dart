@@ -435,4 +435,5 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recorderSaveNameRequired => '請輸入錄音名稱';
-}
+
+ 

@@ -44,11 +44,11 @@ class TunerDisplay extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 48),
+        const SizedBox(height: 20),
 
         _TunerNeedle(centsOff: pitchInfo?.centsOff),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
 
         Text(
           pitchInfo != null ? pitchInfo.centsDisplay : '0',

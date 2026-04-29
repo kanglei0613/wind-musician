@@ -436,4 +436,5 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get recorderSaveNameRequired => '録音名を入力してください';
-}
+
+ 

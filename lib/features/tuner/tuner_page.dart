@@ -173,7 +173,7 @@ class _TunerPageState extends ConsumerState<TunerPage>
               const SizedBox(height: 6),
 
               SizedBox(
-                height: 160,
+                height: 150,
                 child: PitchFork(referenceA4: tunerState.referenceA4),
               ),
 
