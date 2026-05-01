@@ -2,6 +2,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'tuner_provider.dart';
 import 'widgets/tuner_display.dart';
 import 'widgets/tuner_controls.dart';
@@ -131,13 +132,40 @@ class _TunerPageState extends ConsumerState<TunerPage>
                               size: 14,
                             ),
                             const SizedBox(width: 6),
-                            Text(
-                              tunerState.error!,
-                              style: const TextStyle(
-                                color: AppColors.error,
-                                fontSize: 12,
+                            Expanded(
+                              child: Text(
+                                tunerState.error!,
+                                style: const TextStyle(
+                                  color: AppColors.error,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
+                            // 只有在 iOS 不再顯示系統對話框時才顯示「前往設定」按鈕
+                            if (tunerState.micPermPermanentlyDenied) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => openAppSettings(),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    '前往設定',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

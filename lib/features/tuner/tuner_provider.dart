@@ -15,6 +15,9 @@ class TunerState {
   final PitchInfo? pitchInfo;
   final bool isListening;
   final String? error;
+  /// true 表示麥克風權限已被拒絕且 iOS 不會再顯示系統對話框，
+  /// UI 層應顯示「前往設定」按鈕讓使用者手動開啟。
+  final bool micPermPermanentlyDenied;
   final double referenceA4;
   final Instrument selectedInstrument;
 
@@ -22,6 +25,7 @@ class TunerState {
     this.pitchInfo,
     this.isListening = false,
     this.error,
+    this.micPermPermanentlyDenied = false,
     this.referenceA4 = AppConstants.standardPitch,
     this.selectedInstrument = Instruments.concertPitch,
   });
@@ -30,14 +34,18 @@ class TunerState {
     PitchInfo? pitchInfo,
     bool? isListening,
     String? error,
+    bool? micPermPermanentlyDenied,
     double? referenceA4,
     Instrument? selectedInstrument,
     bool clearPitch = false,
+    bool clearError = false,
   }) {
     return TunerState(
       pitchInfo: clearPitch ? null : (pitchInfo ?? this.pitchInfo),
       isListening: isListening ?? this.isListening,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
+      micPermPermanentlyDenied:
+          micPermPermanentlyDenied ?? this.micPermPermanentlyDenied,
       referenceA4: referenceA4 ?? this.referenceA4,
       selectedInstrument: selectedInstrument ?? this.selectedInstrument,
     );
@@ -61,28 +69,44 @@ class TunerNotifier extends StateNotifier<TunerState> {
   /// 連續幾次沒偵測到才清空顯示（避免短暫中斷造成閃爍）
   static const _noSignalThreshold = 8;
 
-  Future<void> startListening() async {
-    // 避免重複啟動
-    if (state.isListening) return;
+  /// 防止權限請求與 startListening 重複執行的鎖
+  bool _isRequesting = false;
 
-    final status = await Permission.microphone.request();
-    if (!status.isGranted) {
-      if (mounted) {
-        if (status.isPermanentlyDenied) {
-          // 永久拒絕：提示用戶前往設定，並自動開啟設定頁
-          state = state.copyWith(
-            error: '麥克風權限已被永久拒絕，請前往設定 → 隱私權 → 麥克風，開啟 Wind Musician 的存取權限。',
-          );
-          await openAppSettings();
-        } else {
-          state = state.copyWith(error: '需要麥克風權限才能使用調音器');
+  Future<void> startListening() async {
+    // 避免重複啟動：isListening 已在串流中，或 _isRequesting 正在等待系統對話框
+    if (state.isListening || _isRequesting) return;
+    _isRequesting = true;
+
+    try {
+      final status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          if (status.isPermanentlyDenied) {
+            // iOS 不再顯示系統對話框：顯示錯誤訊息並由 UI 提供「前往設定」按鈕
+            // 不自動呼叫 openAppSettings()，讓使用者主動決定是否跳轉
+            state = state.copyWith(
+              error: '麥克風權限已被拒絕。請點擊「前往設定」，在設定 → 隱私權 → 麥克風中開啟 Wind Musician 的存取權限。',
+              micPermPermanentlyDenied: true,
+            );
+          } else {
+            state = state.copyWith(
+              error: '需要麥克風權限才能使用調音器',
+              micPermPermanentlyDenied: false,
+            );
+          }
         }
+        return;
       }
-      return;
+    } finally {
+      _isRequesting = false;
     }
 
     if (mounted) {
-      state = state.copyWith(isListening: true, error: null);
+      state = state.copyWith(
+        isListening: true,
+        clearError: true,
+        micPermPermanentlyDenied: false,
+      );
     }
 
     // BC-001：startStream 可能因硬體故障或麥克風被搶占而拋出例外

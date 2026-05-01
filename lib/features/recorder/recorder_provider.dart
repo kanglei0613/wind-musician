@@ -122,6 +122,9 @@ class RecorderState {
   final String? selectedFolderId;
   /// BC-011 / BC-002：操作失敗時的錯誤訊息，UI 顯示後應呼叫 clearError
   final String? error;
+  /// true 表示麥克風權限已被拒絕且 iOS 不會再顯示系統對話框，
+  /// UI 層應顯示「前往設定」動作讓使用者手動開啟。
+  final bool micPermPermanentlyDenied;
 
   const RecorderState({
     this.status = RecorderStatus.idle,
@@ -129,6 +132,7 @@ class RecorderState {
     this.pendingPath,
     this.selectedFolderId,
     this.error,
+    this.micPermPermanentlyDenied = false,
   });
 
   RecorderState copyWith({
@@ -140,6 +144,7 @@ class RecorderState {
     bool clearFolder = false,
     String? error,
     bool clearError = false,
+    bool? micPermPermanentlyDenied,
   }) {
     return RecorderState(
       status: status ?? this.status,
@@ -148,6 +153,8 @@ class RecorderState {
       selectedFolderId:
           clearFolder ? null : (selectedFolderId ?? this.selectedFolderId),
       error: clearError ? null : (error ?? this.error),
+      micPermPermanentlyDenied:
+          micPermPermanentlyDenied ?? this.micPermPermanentlyDenied,
     );
   }
 }
@@ -174,11 +181,28 @@ class RecorderNotifier extends Notifier<RecorderState> {
     state = state.copyWith(selectedFolderId: folderId);
   }
 
+  /// 清除目前的錯誤訊息（UI 顯示 SnackBar 後呼叫）
+  void clearError() {
+    state = state.copyWith(clearError: true, micPermPermanentlyDenied: false);
+  }
+
   Future<void> startRecording() async {
-    // 先確認麥克風權限，避免 Android 13+ PlatformException crash
+    // 先確認麥克風權限，避免 iOS/Android PlatformException crash
     final status = await Permission.microphone.request();
     if (!status.isGranted) {
-      // 權限拒絕：不進行錄音，UI 層可透過 recorderProvider 的 status 判斷
+      if (status.isPermanentlyDenied) {
+        // iOS 不再顯示系統對話框：通知 UI 顯示「前往設定」動作
+        // 不自動呼叫 openAppSettings()，讓使用者主動決定是否跳轉
+        state = state.copyWith(
+          error: '麥克風權限已被拒絕，請前往設定 → 隱私權 → 麥克風，開啟 Wind Musician 的存取權限。',
+          micPermPermanentlyDenied: true,
+        );
+      } else {
+        state = state.copyWith(
+          error: '需要麥克風權限才能錄音',
+          micPermPermanentlyDenied: false,
+        );
+      }
       return;
     }
 

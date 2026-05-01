@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../recorder_provider.dart';
 import 'save_dialog.dart';
@@ -30,9 +31,10 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
       if (!mounted) return;
       _subscription =
           ref.listenManual(recorderProvider, (prev, next) async {
-        if (_dialogShowing) return;
-        if (prev?.pendingPath == null && next.pendingPath != null) {
-          if (!mounted) return;
+        if (!mounted) return;
+
+        // ── 儲存對話框 ──────────────────────────────────────────
+        if (!_dialogShowing && prev?.pendingPath == null && next.pendingPath != null) {
           _dialogShowing = true;
           final result = await showDialog<Map<String, dynamic>>(
             context: context,
@@ -49,6 +51,27 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
           } else {
             await notifier.discardRecording();
           }
+        }
+
+        // ── 權限錯誤 SnackBar ───────────────────────────────────
+        // 當 error 從 null 變為有值時顯示 SnackBar
+        if (prev?.error == null && next.error != null) {
+          if (!mounted) return;
+          final isPermanent = next.micPermPermanentlyDenied;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.error!),
+              duration: const Duration(seconds: 6),
+              action: isPermanent
+                  ? SnackBarAction(
+                      label: '前往設定',
+                      onPressed: () => openAppSettings(),
+                    )
+                  : null,
+            ),
+          );
+          // SnackBar 顯示後清除 state 的 error，避免重複顯示
+          ref.read(recorderProvider.notifier).clearError();
         }
       });
     });
