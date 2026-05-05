@@ -7,6 +7,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:268061403551:android:59feb6324b5b10db3535aa",
+        "android_client_info": {
+          "package_name": "com.kanglei.muklang"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268061403551-j2906p581sa8m35q3thh6roj809okk7s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5aemyL-rgWHkz70o1FonjOVn7ixxI8w8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268061403551-j2906p581sa8m35q3thh6roj809okk7s.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268061403551-7kl3gftb046g9nm3h020dr32nsjrtk5a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kanglei.muklang"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:268061403551:android:35d9537c5e30b10d3535aa",
         "android_client_info": {
           "package_name": "com.kanglei.wind_musician"
@@ -55,10 +91,10 @@
               "client_type": 3
             },
             {
-              "client_id": "268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8.apps.googleusercontent.com",
+              "client_id": "268061403551-7kl3gftb046g9nm3h020dr32nsjrtk5a.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.kanglei.wind-musician"
+                "bundle_id": "com.kanglei.muklang"
               }
             }
           ]

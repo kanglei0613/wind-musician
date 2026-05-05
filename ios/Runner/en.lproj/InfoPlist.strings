@@ -1,0 +1,5 @@
+/* English */
+NSMicrophoneUsageDescription = "Wind Musician uses the microphone for the tuner and recorder.";
+NSMusicLibraryUsageDescription = "Wind Musician needs access to your music library.";
+NSPhotoLibraryUsageDescription = "Wind Musician needs access to your photo library to manage recordings.";
+NSPhotoLibraryAddUsageDescription = "Wind Musician needs permission to save recordings to your photo library.";

@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appName": "Wind Musician",
+  "appName": "MuKlang",
   "navTuner": "Tuner",
   "navRecorder": "Recorder",
   "navAnalysis": "Analysis",
@@ -38,6 +38,7 @@
   "terminologyTitle": "Music Terminology",
   "terminologyHint": "Enter term or abbreviation (e.g. ff, rit.)",
   "terminologyNotFound": "Term not found",
+  "terminologyButton": "Terminology",
   "drawerSignIn": "Sign In",
   "drawerSignInDesc": "Sign in to sync your settings and records",
   "drawerAppearance": "Appearance",
@@ -173,5 +174,7 @@
   "metronomeSoundSine": "Sine",
   "metronomeSoundWoodblock": "Woodblock",
   "metronomeSoundStickClick": "Stick",
-  "metronomeSoundSnare": "Snare"
+  "metronomeSoundSnare": "Snare",
+  "bugReportHint": "Please include your device model and describe the issue in detail",
+  "bugReportOpenMail": "Open Mail App"
 }

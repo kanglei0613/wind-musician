@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MuKlang</string>
+    <string name="metronome_channel_name">メトロノーム</string>
+    <string name="metronome_channel_desc">メトロノームのバックグラウンド再生通知</string>
+    <string name="metronome_notification_title">メトロノーム動作中</string>
+</resources>

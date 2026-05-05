@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appName => '管楽器手帳';
+  String get appName => 'MuKlang';
 
   @override
   String get navTuner => 'チューナー';
@@ -122,6 +122,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get terminologyNotFound => '用語が見つかりません';
+
+  @override
+  String get terminologyButton => '音楽用語';
 
   @override
   String get drawerSignIn => 'サインイン';

@@ -213,8 +213,11 @@ class _TerminologySheetState extends State<TerminologySheet> {
 
           const SizedBox(height: 12),
 
+          // Height 36 gives the quick-term chips a more tappable touch target
+          // while keeping them visually compact. The GestureDetector + opaque
+          // behavior extends the tap region to the full 36px height.
           SizedBox(
-            height: 32,
+            height: 36,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _quickTerms.length,
@@ -226,10 +229,12 @@ class _TerminologySheetState extends State<TerminologySheet> {
                     _controller.text = term;
                     _search(term);
                   },
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
+                    alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
@@ -285,11 +290,16 @@ class _TerminologySheetState extends State<TerminologySheet> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              t.fullName,
-                              style: TextStyle(
-                                color: cs.onSurfaceVariant,
-                                fontSize: 13,
+                            // BC-TM3: fullName can be long — Flexible prevents RenderFlex overflow
+                            Flexible(
+                              child: Text(
+                                t.fullName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: cs.onSurfaceVariant,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ],

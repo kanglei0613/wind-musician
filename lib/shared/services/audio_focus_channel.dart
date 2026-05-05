@@ -46,7 +46,7 @@ class AudioFocusChannel {
 
   // ── Platform Channel ────────────────────────────────────────────────────
   static const _channel =
-      MethodChannel('com.kanglei.wind_musician/audio_focus');
+      MethodChannel('com.kanglei.muklang/audio_focus');
 
   // ── Focus 狀態 Stream ────────────────────────────────────────────────────
   final _focusController = StreamController<AudioFocusState>.broadcast();

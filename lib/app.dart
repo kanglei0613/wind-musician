@@ -3,6 +3,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'features/auth/auth_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/theme/color_mode_provider.dart';
@@ -21,6 +22,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Activate settings sync — watches Firestore user and applies saved preferences.
+    ref.watch(settingsSyncProvider);
+
     final locale = ref.watch(localeProvider);
     final colorMode = ref.watch(colorModeProvider);
 

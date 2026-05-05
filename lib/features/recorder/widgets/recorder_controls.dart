@@ -54,20 +54,14 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
         }
 
         // ── 權限錯誤 SnackBar ───────────────────────────────────
-        // 當 error 從 null 變為有值時顯示 SnackBar
-        if (prev?.error == null && next.error != null) {
+        // 當 error 從 null 變為有值時顯示 SnackBar（僅非永久拒絕情況）
+        // 永久拒絕時 provider 已直接呼叫 openAppSettings()，不需額外提示
+        if (prev?.error == null && next.error != null && !next.micPermPermanentlyDenied) {
           if (!mounted) return;
-          final isPermanent = next.micPermPermanentlyDenied;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(next.error!),
               duration: const Duration(seconds: 6),
-              action: isPermanent
-                  ? SnackBarAction(
-                      label: '前往設定',
-                      onPressed: () => openAppSettings(),
-                    )
-                  : null,
             ),
           );
           // SnackBar 顯示後清除 state 的 error，避免重複顯示
@@ -94,20 +88,26 @@ class _RecorderControlsState extends ConsumerState<RecorderControls> {
 
     return Column(
       children: [
-        Text(
-          _formatTime(recorderState.elapsedSeconds),
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.w200,
-            color: isRecording
-                ? colorScheme.error
-                : colorScheme.onSurface,
-            fontFeatures: const [FontFeature.tabularFigures()],
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            _formatTime(recorderState.elapsedSeconds),
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.w200,
+              color: isRecording
+                  ? colorScheme.error
+                  : colorScheme.onSurface,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           isRecording ? l.recorderStatusRecording : l.recorderStatusIdle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 14,
             color: colorScheme.onSurface.withValues(alpha: 0.6),

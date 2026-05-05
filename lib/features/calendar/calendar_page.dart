@@ -58,6 +58,8 @@ class CalendarPage extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       l.calendarSignInHint,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: cs.onPrimaryContainer,
                         fontSize: 13,
@@ -108,6 +110,14 @@ class _CalendarBody extends ConsumerWidget {
     final ensemblesAsync = ref.watch(userEnsemblesProvider);
     final ensembles = ensemblesAsync.valueOrNull ?? <Ensemble>[];
 
+    // BC-C2: reset tab to 0 when the ensemble list shrinks (e.g. user leaves an
+    // ensemble), preventing an index-out-of-bounds on the tab selector.
+    if (tab >= 2 && tab - 2 >= ensembles.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(calendarTabProvider.notifier).state = 0;
+      });
+    }
+
     final allEnsembleEvents = <EnsembleEvent>[];
     for (final e in ensembles) {
       final eventsAsync = ref.watch(
@@ -156,7 +166,8 @@ class _CalendarBody extends ConsumerWidget {
       children: [
         TableCalendar<Object>(
           firstDay: DateTime(2020),
-          lastDay: DateTime(2030),
+          // BC-C3: dynamic last day — always 5 years from today instead of hardcoded 2030
+          lastDay: DateTime.now().add(const Duration(days: 365 * 5)),
           focusedDay: focusedDay,
           selectedDayPredicate: (day) => isSameDay(day, selectedDay),
           calendarFormat: CalendarFormat.month,
@@ -321,10 +332,14 @@ class _EnsembleEventTile extends ConsumerWidget {
               color: Colors.orange, size: 18),
         ),
         title: Text(event.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
                 color: cs.onSurface, fontWeight: FontWeight.w500)),
         subtitle: Text(
           '${event.location != null ? '${event.location}  ' : ''}$timeStr',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
         ),
         onTap: () {
@@ -402,6 +417,8 @@ class _PracticeEntryTile extends ConsumerWidget {
               TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
         ),
         subtitle: Text(subtitleText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12)),
         trailing: PopupMenuButton<String>(
@@ -469,19 +486,27 @@ class _TabChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    // GestureDetector with opaque HitTestBehavior ensures the full 36px+
+    // touch area responds even when the finger lands between chip and margin.
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         margin: const EdgeInsets.only(right: 8),
+        // vertical: 10 → total chip height ≈ 12*1.2 + 20 ≈ 34px (chip-sized,
+        // and the opaque GestureDetector extends the tap region to the full row).
         padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: const BoxConstraints(minHeight: 36),
         decoration: BoxDecoration(
           color: selected ? cs.primary : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: selected ? cs.onPrimary : cs.onSurfaceVariant,
             fontSize: 12,

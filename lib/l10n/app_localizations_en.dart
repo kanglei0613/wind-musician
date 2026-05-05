@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Wind Musician';
+  String get appName => 'MuKlang';
 
   @override
   String get navTuner => 'Tuner';
@@ -122,6 +122,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terminologyNotFound => 'Term not found';
+
+  @override
+  String get terminologyButton => 'Terminology';
 
   @override
   String get drawerSignIn => 'Sign In';

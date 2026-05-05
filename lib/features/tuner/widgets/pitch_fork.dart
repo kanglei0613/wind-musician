@@ -2,6 +2,7 @@ library;
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 /// 音叉 Widget - 六角蜂巢排列
@@ -15,6 +16,11 @@ class PitchFork extends StatefulWidget {
 }
 
 class _PitchForkState extends State<PitchFork> {
+  /// Android platform channel for audio focus + WakeLock management.
+  /// On iOS this is a no-op (AVAudioSession is already configured by the app).
+  static const _pitchForkChannel =
+      MethodChannel('com.kanglei.muklang/pitch_fork');
+
   static const _row0 = ['C', 'C#', 'D', 'D#', 'E'];
   static const _row1notes = ['B', 'F'];
   static const _row2 = ['A#', 'A', 'G#', 'G', 'F#'];
@@ -28,6 +34,8 @@ class _PitchForkState extends State<PitchFork> {
   final Map<String, AudioSource> _sources = {};
   int _selectedOctave = 4;
   bool _sustainOn = false;
+  // BC-PF1: guard against rapid octave-change race condition
+  bool _isChangingOctave = false;
 
   // ── 滑動手勢支援 ──────────────────────────────────────────────────────────
   /// 每個音名格子的中心座標（在 LayoutBuilder 裡更新，不用 setState）
@@ -81,6 +89,10 @@ class _PitchForkState extends State<PitchFork> {
       // Sustain 模式下再按同一音 → 淡出後停止
       final handle = _activeHandles[note];
       setState(() => _activeHandles.remove(note));
+      // 最後一音停止時釋放音訊焦點（Android）
+      if (_activeHandles.isEmpty) {
+        _pitchForkChannel.invokeMethod<void>('releaseFocus').ignore();
+      }
       if (handle != null) {
         try {
           SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 30));
@@ -93,6 +105,10 @@ class _PitchForkState extends State<PitchFork> {
     if (_activeHandles.containsKey(note)) return;
     final source = _sources[note];
     if (source == null) return;
+    // 第一個音開始播放時請求音訊焦點 + WakeLock（Android）
+    if (_activeHandles.isEmpty) {
+      _pitchForkChannel.invokeMethod<void>('requestFocus').ignore();
+    }
     try {
       // 以音量 0 開始播放，立即淡入避免咔嗒聲
       final handle = await SoLoud.instance.play(
@@ -109,6 +125,10 @@ class _PitchForkState extends State<PitchFork> {
     if (handle == null) return;
     // 先從 map 移除（UI 立即反應），再淡出停止
     setState(() => _activeHandles.remove(note));
+    // 最後一音停止時釋放音訊焦點 + WakeLock（Android）
+    if (_activeHandles.isEmpty) {
+      _pitchForkChannel.invokeMethod<void>('releaseFocus').ignore();
+    }
     try {
       SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 40));
       await Future.delayed(const Duration(milliseconds: 45));
@@ -128,29 +148,40 @@ class _PitchForkState extends State<PitchFork> {
         _activeHandles.clear();
         _sustainOn = false;
       });
+      // Sustain 關閉清除所有音符時釋放音訊焦點（Android）
+      _pitchForkChannel.invokeMethod<void>('releaseFocus').ignore();
     } else {
       setState(() => _sustainOn = true);
     }
   }
 
   Future<void> _changeOctave(int delta) async {
+    // BC-PF1: prevent concurrent _changeOctave calls from corrupting _sources
+    if (_isChangingOctave) return;
     final next = _selectedOctave + delta;
     if (next < 1 || next > 7) return;
-    for (final note in _activeHandles.keys.toList()) {
-      final handle = _activeHandles[note];
-      if (handle != null) {
-        try { await SoLoud.instance.stop(handle); } catch (_) {}
+    _isChangingOctave = true;
+    try {
+      for (final note in _activeHandles.keys.toList()) {
+        final handle = _activeHandles[note];
+        if (handle != null) {
+          try { await SoLoud.instance.stop(handle); } catch (_) {}
+        }
       }
+      for (final source in _sources.values) {
+        try { SoLoud.instance.disposeSource(source); } catch (_) {}
+      }
+      _sources.clear();
+      if (mounted) {
+        setState(() {
+          _selectedOctave = next;
+          _activeHandles.clear();
+        });
+      }
+      await _loadAllNotes();
+    } finally {
+      _isChangingOctave = false;
     }
-    for (final source in _sources.values) {
-      try { SoLoud.instance.disposeSource(source); } catch (_) {}
-    }
-    _sources.clear();
-    setState(() {
-      _selectedOctave = next;
-      _activeHandles.clear();
-    });
-    await _loadAllNotes();
   }
 
   @override
@@ -260,6 +291,10 @@ class _PitchForkState extends State<PitchFork> {
     for (final s in _sources.values) {
       try { SoLoud.instance.disposeSource(s); } catch (_) {}
     }
+    // Widget 銷毀時確保音訊焦點已釋放（Android），防止 WakeLock 洩漏
+    if (_activeHandles.isNotEmpty) {
+      _pitchForkChannel.invokeMethod<void>('releaseFocus').ignore();
+    }
     super.dispose();
   }
 
@@ -272,7 +307,7 @@ class _PitchForkState extends State<PitchFork> {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
 
-        final hexR = (w / 6 / 2) * 0.90;
+        final hexR = (w / 6 / 2) * 1.05;
         final hexW = hexR * math.sqrt(3);
         final hexH = hexR * 2;
         final colStep = hexW * 1.05;

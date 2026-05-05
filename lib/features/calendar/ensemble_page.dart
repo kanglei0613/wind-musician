@@ -126,7 +126,8 @@ class _CalendarTab extends ConsumerWidget {
       children: [
         TableCalendar<EnsembleEvent>(
           firstDay: DateTime(2020),
-          lastDay: DateTime(2030),
+          // BC-C3: dynamic last day — always 5 years from today instead of hardcoded 2030
+          lastDay: DateTime.now().add(const Duration(days: 365 * 5)),
           focusedDay: focusedDay,
           selectedDayPredicate: (d) => isSameDay(d, selectedDay),
           calendarFormat: CalendarFormat.month,

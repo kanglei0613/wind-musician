@@ -11,6 +11,10 @@ class AppUser {
   final String? photoUrl;
   final DateTime createdAt;
   final DateTime lastActiveAt;
+  // User preferences — synced across devices via Firestore.
+  final String? language;       // 'zh' | 'en' | 'ja' | 'ko'
+  final String? colorScheme;    // AppColorScheme.name
+  final String? colorBrightness; // AppBrightness.name
 
   const AppUser({
     required this.uid,
@@ -19,6 +23,9 @@ class AppUser {
     this.photoUrl,
     required this.createdAt,
     required this.lastActiveAt,
+    this.language,
+    this.colorScheme,
+    this.colorBrightness,
   });
 
   Map<String, dynamic> toJson() => {
@@ -28,6 +35,9 @@ class AppUser {
         'photoUrl': photoUrl,
         'createdAt': Timestamp.fromDate(createdAt),
         'lastActiveAt': Timestamp.fromDate(lastActiveAt),
+        if (language != null) 'language': language,
+        if (colorScheme != null) 'colorScheme': colorScheme,
+        if (colorBrightness != null) 'colorBrightness': colorBrightness,
       };
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
@@ -37,6 +47,9 @@ class AppUser {
         photoUrl: json['photoUrl'] as String?,
         createdAt: (json['createdAt'] as Timestamp).toDate(),
         lastActiveAt: (json['lastActiveAt'] as Timestamp).toDate(),
+        language: json['language'] as String?,
+        colorScheme: json['colorScheme'] as String?,
+        colorBrightness: json['colorBrightness'] as String?,
       );
 
   factory AppUser.fromFirestore(DocumentSnapshot doc) {
@@ -51,6 +64,9 @@ class AppUser {
     String? photoUrl,
     DateTime? createdAt,
     DateTime? lastActiveAt,
+    String? language,
+    String? colorScheme,
+    String? colorBrightness,
   }) =>
       AppUser(
         uid: uid ?? this.uid,
@@ -59,5 +75,8 @@ class AppUser {
         photoUrl: photoUrl ?? this.photoUrl,
         createdAt: createdAt ?? this.createdAt,
         lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+        language: language ?? this.language,
+        colorScheme: colorScheme ?? this.colorScheme,
+        colorBrightness: colorBrightness ?? this.colorBrightness,
       );
 }

@@ -30,7 +30,7 @@ class NativeMetronomeChannel {
 
   // ── Platform Channel ────────────────────────────────────────────────────
   static const _channel =
-      MethodChannel('com.kanglei.wind_musician/metronome');
+      MethodChannel('com.kanglei.muklang/metronome');
 
   // ── Beat 事件 Stream ────────────────────────────────────────────────────
   /// 每拍觸發一次的 broadcast Stream。

@@ -3,6 +3,17 @@ library;
 import 'package:flutter/material.dart';
 import 'color_mode_provider.dart';
 
+// ═══════════════════════════════════════════════════════════════════
+// 高對比度音樂家深色主題常數
+// 適用於舞台燈光下或暗室練習環境，辨識度與可讀性最佳。
+// ═══════════════════════════════════════════════════════════════════
+const kBackground    = Color(0xFF1A1A1A);
+const kSurface       = Color(0xFF2C2C2C);
+const kPrimary       = Color(0xFFFFB347); // amber orange — 舞台燈光下辨識度最高
+const kActive        = Color(0xFF4ECDC4); // teal — 啟用 / 活躍狀態
+const kTextPrimary   = Color(0xFFF5F5F5);
+const kTextSecondary = Color(0xFFAAAAAA);
+
 /// 動態顏色系統
 /// 根據 ColorMode 產生對應的顏色
 class AppColors {
@@ -13,6 +24,14 @@ class AppColors {
   static const success = Color(0xFF00C896);
   static const warning = Color(0xFFFFB300);
   static const error = Color(0xFFFF5252);
+
+  // ── 高對比度音樂家深色主題（與上方 top-level 常數保持同步）─
+  static const musicianBackground    = kBackground;
+  static const musicianSurface       = kSurface;
+  static const musicianPrimary       = kPrimary;      // amber orange
+  static const musicianActive        = kActive;       // teal active state
+  static const musicianTextPrimary   = kTextPrimary;
+  static const musicianTextSecondary = kTextSecondary;
 
   // ── 預設顏色（黑色 Dark Mode，向下相容）─────────
   static const primary = Color(0xFF3D5AFE);
@@ -50,14 +69,15 @@ class AppColors {
             accent: Color(0xFF3b82f6),
           ),
 
+    // gray dark → 高對比度音樂家配色（kBackground / kSurface / kPrimary…）
     AppColorScheme.gray: (isDark) => isDark
         ? const AppColorSet(
-            background: Color(0xFF1A1A1A),
-            surface: Color(0xFF2D2D2D),
+            background: kBackground,       // 0xFF1A1A1A
+            surface: kSurface,             // 0xFF2C2C2C
             surfaceLight: Color(0xFF3D3D3D),
-            textPrimary: Color(0xFFE8E8E8),
-            textSecondary: Color(0xFF9A9A9A),
-            accent: Color(0xFF3b82f6),
+            textPrimary: kTextPrimary,     // 0xFFF5F5F5
+            textSecondary: kTextSecondary, // 0xFFAAAAAA
+            accent: kPrimary,             // 0xFFFFB347 amber orange
           )
         : const AppColorSet(
             background: Color(0xFFF5F5F5),

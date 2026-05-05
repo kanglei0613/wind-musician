@@ -191,12 +191,8 @@ class RecorderNotifier extends Notifier<RecorderState> {
     final status = await Permission.microphone.request();
     if (!status.isGranted) {
       if (status.isPermanentlyDenied) {
-        // iOS 不再顯示系統對話框：通知 UI 顯示「前往設定」動作
-        // 不自動呼叫 openAppSettings()，讓使用者主動決定是否跳轉
-        state = state.copyWith(
-          error: '麥克風權限已被拒絕，請前往設定 → 隱私權 → 麥克風，開啟 Wind Musician 的存取權限。',
-          micPermPermanentlyDenied: true,
-        );
+        // 權限已永久拒絕：直接開啟系統設定，不顯示中間警告
+        openAppSettings();
       } else {
         state = state.copyWith(
           error: '需要麥克風權限才能錄音',

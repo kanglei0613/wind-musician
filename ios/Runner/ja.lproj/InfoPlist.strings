@@ -1,0 +1,5 @@
+/* Japanese */
+NSMicrophoneUsageDescription = "Wind Musicianはチューナーと録音機能のためにマイクを使用します。";
+NSMusicLibraryUsageDescription = "Wind Musicianは音楽ライブラリへのアクセスが必要です。";
+NSPhotoLibraryUsageDescription = "Wind Musicianは録音ファイルを管理するためにフォトライブラリへのアクセスが必要です。";
+NSPhotoLibraryAddUsageDescription = "Wind Musicianは録音をフォトライブラリに保存するための許可が必要です。";

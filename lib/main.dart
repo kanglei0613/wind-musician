@@ -9,7 +9,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'firebase_options.dart';
 import 'shared/constants/app_constants.dart';
+import 'shared/services/notification_permission_service.dart';
 import 'shared/theme/color_mode_provider.dart';
+
+/// 從裝置系統語言解析 App 初始語系。
+/// 支援的語系（zh/en/ja/ko）若符合則使用，否則預設為英文。
+Locale _resolveSystemLocale() {
+  final systemLang =
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  if (AppConstants.supportedLocales.contains(systemLang)) {
+    return Locale(systemLang);
+  }
+  return const Locale('en');
+}
 
 void main() async {
   // 1. Flutter engine
@@ -25,22 +37,27 @@ void main() async {
     return true;
   };
 
-  // 4. SoLoud 音訊引擎（失敗不阻擋 app 啟動）
+  // 4. Android 13+：請求 POST_NOTIFICATIONS 執行期權限（前景服務通知必須）
+  //    permission_handler 在 Android 12 以下會直接回傳 granted，不彈對話框。
+  //    若使用者選擇「永不詢問」則靜默略過，不強制導向設定頁。
+  await requestNotificationPermissionIfNeeded();
+
+  // 5. SoLoud 音訊引擎（失敗不阻擋 app 啟動）
   try {
     await SoLoud.instance.init();
   } catch (e) {
     debugPrint('SoLoud init failed: $e');
   }
 
-  // 5. 讀取已儲存的語言設定，在 runApp 前注入，避免冷啟動時語言閃爍
+  // 6. 讀取已儲存的語言設定，在 runApp 前注入，避免冷啟動時語言閃爍
   final prefs = await SharedPreferences.getInstance();
   final savedLocale = prefs.getString(AppConstants.keyLocale);
   final initialLocale = (savedLocale != null &&
           AppConstants.supportedLocales.contains(savedLocale))
       ? Locale(savedLocale)
-      : const Locale('zh');
+      : _resolveSystemLocale();
 
-  // 5b. 讀取已儲存的 Color Mode（scheme + brightness）
+  // 6b. 讀取已儲存的 Color Mode（scheme + brightness）
   final savedScheme = prefs.getString(AppConstants.keyColorScheme);
   final savedBrightness = prefs.getString(AppConstants.keyColorBrightness);
   final initialColorMode = ColorMode(
@@ -54,7 +71,7 @@ void main() async {
     ),
   );
 
-  // 6. 啟動 app
+  // 7. 啟動 app
   runZonedGuarded(
     () => runApp(
       ProviderScope(

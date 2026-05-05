@@ -1,4 +1,4 @@
-package com.kanglei.wind_musician
+package com.kanglei.muklang
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -33,10 +33,10 @@ object NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "節拍器",                          // 使用者在設定中看到的頻道名稱
+                context.getString(R.string.metronome_channel_name),
                 NotificationManager.IMPORTANCE_LOW  // LOW：靜音但可見，不打擾用戶
             ).apply {
-                description = "節拍器背景播放通知"
+                description = context.getString(R.string.metronome_channel_desc)
                 // 關閉震動與聲音，避免通知本身的聲音干擾節拍器
                 enableVibration(false)
                 setSound(null, null)
@@ -71,7 +71,7 @@ object NotificationHelper {
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_metronome_notification)
-            .setContentTitle("節拍器運行中")
+            .setContentTitle(context.getString(R.string.metronome_notification_title))
             .setContentText("$bpm BPM · $timeSig")
             .setOngoing(true)           // 持續通知，使用者無法直接滑除
             .setSilent(true)            // 不播放通知音效

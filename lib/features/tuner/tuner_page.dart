@@ -10,6 +10,7 @@ import 'widgets/instrument_selector.dart';
 import 'widgets/metronome.dart';
 import 'widgets/pitch_fork.dart';
 import '../../features/terminology/terminology_page.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/theme/app_colors.dart';
 
 class TunerPage extends ConsumerStatefulWidget {
@@ -72,142 +73,153 @@ class _TunerPageState extends ConsumerState<TunerPage>
         elevation: 0,
         toolbarHeight: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const TerminologySheet(),
-          );
-        },
-        backgroundColor: cs.primary,
-        mini: true,
-        child: const Icon(
-          Icons.menu_book_rounded,
-          color: Colors.white,
-          size: 18,
-        ),
-      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 110,
-                child: Metronome(),
-              ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive heights clamped to safe ranges so the layout
+            // works on small (SE) and large (tablet) screens alike.
+            final metronomeH = (constraints.maxHeight * 0.175).clamp(110.0, 160.0);
+            final pitchForkH = ((constraints.maxWidth - 24) * 0.45 + 16).clamp(170.0, 340.0);
 
-              const SizedBox(height: 6),
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: metronomeH,
+                    child: const Metronome(),
+                  ),
 
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: TunerDisplay(state: tunerState),
-                      ),
-                    ),
+                  const SizedBox(height: 6),
 
-                    if (tunerState.error != null)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withAlpha(30),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.error.withAlpha(100),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: const Alignment(0, -0.25),
+                            child: TunerDisplay(state: tunerState),
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: AppColors.error,
-                              size: 14,
+
+                        // 非永久拒絕時顯示簡單錯誤提示（永久拒絕時 provider 已直接開啟設定）
+                        if (tunerState.error != null && !tunerState.micPermPermanentlyDenied)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                tunerState.error!,
-                                style: const TextStyle(
-                                  color: AppColors.error,
-                                  fontSize: 12,
-                                ),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withAlpha(30),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.error.withAlpha(100),
                               ),
                             ),
-                            // 只有在 iOS 不再顯示系統對話框時才顯示「前往設定」按鈕
-                            if (tunerState.micPermPermanentlyDenied) ...[
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => openAppSettings(),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.error,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '前往設定',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: AppColors.error,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    tunerState.error!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ),
+                              ],
+                            ),
+                          ),
+
+                        // Terminology button — sits above the Hz controls row
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => const TerminologySheet(),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: cs.primary.withAlpha(20),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                    color: cs.primary.withAlpha(80)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.menu_book_rounded,
+                                      size: 11, color: cs.primary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    AppLocalizations.of(context)?.terminologyButton ?? 'Terminology',
+                                    style: TextStyle(
+                                        color: cs.primary, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              InstrumentSelector(
+                                selectedInstrument: tunerState.selectedInstrument,
+                                onSelected: (instrument) {
+                                  ref
+                                      .read(tunerProvider.notifier)
+                                      .setInstrument(instrument);
+                                },
+                              ),
+                              TunerControls(
+                                referenceA4: tunerState.referenceA4,
+                                onReferenceChanged: (value) {
+                                  ref
+                                      .read(tunerProvider.notifier)
+                                      .setReferenceA4(value);
+                                },
                               ),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          InstrumentSelector(
-                            selectedInstrument: tunerState.selectedInstrument,
-                            onSelected: (instrument) {
-                              ref
-                                  .read(tunerProvider.notifier)
-                                  .setInstrument(instrument);
-                            },
-                          ),
-                          TunerControls(
-                            referenceA4: tunerState.referenceA4,
-                            onReferenceChanged: (value) {
-                              ref
-                                  .read(tunerProvider.notifier)
-                                  .setReferenceA4(value);
-                            },
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  SizedBox(
+                    height: pitchForkH,
+                    child: PitchFork(referenceA4: tunerState.referenceA4),
+                  ),
+
+                  const SizedBox(height: 6),
+                ],
               ),
-
-              const SizedBox(height: 6),
-
-              SizedBox(
-                height: 150,
-                child: PitchFork(referenceA4: tunerState.referenceA4),
-              ),
-
-              const SizedBox(height: 6),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

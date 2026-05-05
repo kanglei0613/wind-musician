@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appName => '管樂手帳';
+  String get appName => 'MuKlang';
 
   @override
   String get navTuner => '調音器';
@@ -121,6 +121,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get terminologyNotFound => '找不到這個術語';
+
+  @override
+  String get terminologyButton => '術語查詢';
 
   @override
   String get drawerSignIn => 'Sign In';

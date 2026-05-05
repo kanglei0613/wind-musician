@@ -22,4 +22,23 @@ class UserRepository {
       'lastActiveAt': Timestamp.fromDate(DateTime.now()),
     });
   }
+
+  Future<void> updateDisplayName(String uid, String displayName) async {
+    await _col.doc(uid).update({'displayName': displayName});
+  }
+
+  /// Persist user preference settings to Firestore so they sync across devices.
+  Future<void> updateSettings(
+    String uid, {
+    String? language,
+    String? colorScheme,
+    String? colorBrightness,
+  }) async {
+    final data = <String, dynamic>{};
+    if (language != null) data['language'] = language;
+    if (colorScheme != null) data['colorScheme'] = colorScheme;
+    if (colorBrightness != null) data['colorBrightness'] = colorBrightness;
+    if (data.isEmpty) return;
+    await _col.doc(uid).update(data);
+  }
 }

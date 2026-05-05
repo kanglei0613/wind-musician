@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appName => '관악기 수첩';
+  String get appName => 'MuKlang';
 
   @override
   String get navTuner => '튜너';
@@ -121,6 +121,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get terminologyNotFound => '용어를 찾을 수 없습니다';
+
+  @override
+  String get terminologyButton => '음악 용어';
 
   @override
   String get drawerSignIn => '로그인';

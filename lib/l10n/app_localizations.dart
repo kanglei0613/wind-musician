@@ -105,7 +105,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In zh, this message translates to:
-  /// **'管樂手帳'**
+  /// **'MuKlang'**
   String get appName;
 
   /// No description provided for @navTuner.
@@ -329,6 +329,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'找不到這個術語'**
   String get terminologyNotFound;
+
+  /// No description provided for @terminologyButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'術語查詢'**
+  String get terminologyButton;
 
   /// No description provided for @drawerSignIn.
   ///
@@ -977,6 +983,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'小鼓'**
   String get metronomeSoundSnare;
+
+  /// No description provided for @bugReportHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'請附上行動裝置型號，盡可能詳述遇到的情況'**
+  String get bugReportHint;
+
+  /// No description provided for @bugReportOpenMail.
+  ///
+  /// In zh, this message translates to:
+  /// **'開啟郵件 App'**
+  String get bugReportOpenMail;
 }
 
 class _AppLocalizationsDelegate

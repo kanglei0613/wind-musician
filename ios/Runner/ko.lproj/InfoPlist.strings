@@ -1,0 +1,5 @@
+/* Korean */
+NSMicrophoneUsageDescription = "Wind Musician은 튜너 및 녹음 기능을 위해 마이크를 사용합니다.";
+NSMusicLibraryUsageDescription = "Wind Musician이 음악 보관함에 접근해야 합니다.";
+NSPhotoLibraryUsageDescription = "Wind Musician이 녹음 파일을 관리하기 위해 사진 보관함에 접근해야 합니다.";
+NSPhotoLibraryAddUsageDescription = "Wind Musician이 녹음을 사진 보관함에 저장하려면 권한이 필요합니다.";

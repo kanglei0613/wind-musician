@@ -11,6 +11,8 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/services/native_metronome_channel.dart';
 import '../../../shared/services/audio_focus_channel.dart';
+import '../../../shared/services/notification_permission_service.dart';
+import '../../../shared/widgets/min_touch_target.dart';
 
 class _Section {
   int numerator;
@@ -449,9 +451,9 @@ class _MetronomeState extends State<Metronome>
     }
 
     // 音效播放：
-    //   Android → 由 MetronomeEngine (Native) 負責，Flutter 不重複播放
-    //   iOS / Dart → SoLoud 播放 + attack/decay envelope
-    if (!Platform.isAndroid) {
+    //   Android / iOS → 由 MetronomeEngine (Native) 負責，Flutter 不重複播放
+    //   Dart（桌面 / Web）→ SoLoud 播放 + attack/decay envelope
+    if (!Platform.isAndroid && !Platform.isIOS) {
       try {
         final isDown = _currentBeat == 0;
         final source = isDown ? _strongBeat : _weakBeat;
@@ -747,34 +749,49 @@ class _MetronomeState extends State<Metronome>
 
               const Spacer(),
 
+              // 48×48 opaque hit area around the visual 40×40 circle (accessibility min)
               GestureDetector(
-                onTap: _toggle,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _isPlaying
-                        ? AppColors.tunerSharp.withAlpha(30)
-                        : cs.primary.withAlpha(30),
-                    border: Border.all(
-                      color: _isPlaying ? AppColors.tunerSharp : cs.primary,
-                      width: 2,
+                onTap: () async {
+                  // Android 13+：啟動前確認通知權限；停止時跳過檢查
+                  if (!_isPlaying && Platform.isAndroid) {
+                    final ok = await checkAndRequestNotificationForMetronome(context);
+                    if (!ok) return; // 使用者未授予，取消啟動
+                  }
+                  _toggle();
+                },
+                behavior: HitTestBehavior.opaque,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _isPlaying
+                            ? AppColors.tunerSharp.withAlpha(30)
+                            : cs.primary.withAlpha(30),
+                        border: Border.all(
+                          color: _isPlaying ? AppColors.tunerSharp : cs.primary,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                        size: 22,
+                        color: _isPlaying ? AppColors.tunerSharp : cs.primary,
+                      ),
                     ),
-                  ),
-                  child: Icon(
-                    _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                    size: 22,
-                    color: _isPlaying ? AppColors.tunerSharp : cs.primary,
                   ),
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
-              GestureDetector(
+              MinTouchTarget(
                 onTap: _showSoundSheet,
+                minSize: 40,
                 child: Container(
                   width: 34,
                   height: 34,
@@ -790,10 +807,11 @@ class _MetronomeState extends State<Metronome>
                 ),
               ),
 
-              const SizedBox(width: 6),
+              const SizedBox(width: 3),
 
-              GestureDetector(
+              MinTouchTarget(
                 onTap: _showSectionSheet,
+                minSize: 40,
                 child: Container(
                   width: 34,
                   height: 34,
@@ -829,6 +847,8 @@ class _MetronomeState extends State<Metronome>
               ),
               child: Text(
                 '${l.metronomeSectionLabel} ${_currentSectionIndex + 1}/${_sections.length} · ${_currentMeasure + 1} ${l.metronomeMeasure}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: _sectionFlash ? cs.primary : cs.onSurfaceVariant,
                   fontSize: 11,
@@ -902,16 +922,22 @@ class _SectionTimeDisplay extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '${section.numerator}/${section.denominator}',
-          style: TextStyle(
-            color: cs.onSurface,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '${section.numerator}/${section.denominator}',
+            maxLines: 1,
+            style: TextStyle(
+              color: cs.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         Text(
           '×${section.measures} ${l.metronomeMeasure}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: cs.onSurfaceVariant,
             fontSize: 9,
@@ -949,23 +975,32 @@ class _BpmControl extends StatelessWidget {
           onLongPressStart: () => onLongPressStart(-1),
           onLongPressEnd: onLongPressEnd,
         ),
-        GestureDetector(
+        MinTouchTarget(
           onTap: onTapBpm,
+          minSize: 40,
           child: SizedBox(
-            width: 52,
+            width: 56,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '$bpm',
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '$bpm',
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
                 Text(
                   'BPM',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: cs.onSurfaceVariant,
                     fontSize: 9,
@@ -1002,26 +1037,34 @@ class _PressButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    // Wrap in a 48×48 opaque hit-test region for accessibility,
+    // while keeping the visual container at 32×32.
     return GestureDetector(
       onTap: onTap,
       onLongPressStart: (_) => onLongPressStart(),
       onLongPressEnd: (_) => onLongPressEnd(),
       // 手指滑出按鈕範圍時手勢被取消，同樣要停止 timer
       onLongPressCancel: onLongPressEnd,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
+      behavior: HitTestBehavior.opaque,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: cs.onSurface,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
         ),

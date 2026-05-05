@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MuKlang</string>
+    <string name="metronome_channel_name">메트로놈</string>
+    <string name="metronome_channel_desc">메트로놈 백그라운드 재생 알림</string>
+    <string name="metronome_notification_title">메트로놈 실행 중</string>
+</resources>

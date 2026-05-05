@@ -1,4 +1,4 @@
-package com.kanglei.wind_musician
+package com.kanglei.muklang
 
 import android.app.Service
 import android.content.Intent
@@ -79,8 +79,8 @@ class MetronomeService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // START_STICKY：服務被系統殺死後自動重啟（對節拍器來說通常不需要，但保留）
-        return START_NOT_STICKY
+        // START_STICKY：服務被系統殺死後自動重啟，確保節拍器在背景持續運行
+        return START_STICKY
     }
 
     override fun onDestroy() {

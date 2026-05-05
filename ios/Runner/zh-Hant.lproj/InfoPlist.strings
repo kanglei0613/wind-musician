@@ -1,0 +1,5 @@
+/* Traditional Chinese */
+NSMicrophoneUsageDescription = "管樂手帳需要使用麥克風來執行音準儀和錄音功能。";
+NSMusicLibraryUsageDescription = "管樂手帳需要存取您的音樂資料庫。";
+NSPhotoLibraryUsageDescription = "管樂手帳需要存取您的相片庫以管理錄音檔案。";
+NSPhotoLibraryAddUsageDescription = "管樂手帳需要權限將錄音儲存至您的相片庫。";

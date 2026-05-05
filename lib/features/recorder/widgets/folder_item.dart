@@ -48,6 +48,8 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                 Expanded(
                   child: Text(
                     widget.folder.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
@@ -57,6 +59,8 @@ class _FolderItemState extends ConsumerState<FolderItem> {
                 ),
                 Text(
                   l.recorderFolderCount(count),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color:
                         colorScheme.onSurface.withValues(alpha: 0.5),

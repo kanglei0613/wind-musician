@@ -5,12 +5,27 @@
 	<!-- 麥克風使用說明（iOS App Store 審核必填，缺少會直接被拒） -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Wind Musician needs microphone access for the tuner and recording features. / Wind Musician 需要麥克風權限以使用調音器與錄音功能。</string>
+	<!-- 音樂資料庫存取 -->
+	<key>NSMusicLibraryUsageDescription</key>
+	<string>Wind Musician needs access to your music library to import and play audio files.</string>
+	<!-- Apple Music / media library access (required by App Store since iOS 9) -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Wind Musician needs access to your music library to import and play audio files.</string>
+	<!-- 相片圖庫讀取（播放或顯示已存檔案） -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wind Musician needs photo library access to save recordings.</string>
+	<!-- 相片圖庫寫入（儲存錄音檔） -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Wind Musician needs permission to save recordings to your photo library.</string>
+	<!-- 文件資料夾存取（儲存與讀取錄音檔案） -->
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Wind Musician needs access to your Documents folder to save and manage recordings.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Wind Musician</string>
+	<string>MuKlang</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -55,24 +70,41 @@
 			</array>
 		</dict>
 	</dict>
+	<!-- Google Sign In: required URL scheme so the OAuth redirect returns to this app.
+	     Value must match REVERSED_CLIENT_ID in GoogleService-Info.plist. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Google Sign In: client ID for GIDSignIn configuration -->
+	<key>GIDClientID</key>
+	<string>268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8.apps.googleusercontent.com</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- BC-G5: Lock to Portrait only — UI not adapted for landscape (tuner needle, pitch fork).
+	     Re-enable landscape when proper adaptive layouts are implemented. -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Opt out of iPad multitasking (Split View / Slide Over) so portrait-only UI is accepted by App Store -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
 </dict>
 </plist>

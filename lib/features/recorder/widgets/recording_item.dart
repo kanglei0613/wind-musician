@@ -52,6 +52,8 @@ class RecordingItem extends ConsumerWidget {
           ),
           title: Text(
             recording.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontWeight: FontWeight.w500,
@@ -59,6 +61,8 @@ class RecordingItem extends ConsumerWidget {
           ),
           subtitle: Text(
             '${_formatDate(recording.createdAt)}  ·  ${_formatDuration(recording.durationSeconds)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: colorScheme.onSurface.withValues(alpha: 0.6),
               fontSize: 12,

@@ -82,12 +82,8 @@ class TunerNotifier extends StateNotifier<TunerState> {
       if (!status.isGranted) {
         if (mounted) {
           if (status.isPermanentlyDenied) {
-            // iOS 不再顯示系統對話框：顯示錯誤訊息並由 UI 提供「前往設定」按鈕
-            // 不自動呼叫 openAppSettings()，讓使用者主動決定是否跳轉
-            state = state.copyWith(
-              error: '麥克風權限已被拒絕。請點擊「前往設定」，在設定 → 隱私權 → 麥克風中開啟 Wind Musician 的存取權限。',
-              micPermPermanentlyDenied: true,
-            );
+            // 權限已永久拒絕：直接開啟系統設定，不顯示中間警告
+            openAppSettings();
           } else {
             state = state.copyWith(
               error: '需要麥克風權限才能使用調音器',

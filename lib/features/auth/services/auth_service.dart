@@ -1,5 +1,7 @@
 library;
 
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -43,7 +45,21 @@ class AuthService {
   ///
   /// Apple Sign-In is mandatory on iOS when offering any third-party social
   /// login (App Store Review Guideline 4.8).
+  ///
+  /// **Simulator note — AuthorizationError 1000**: This error is a *known
+  /// simulator limitation*. The iOS Simulator cannot complete Apple Sign-In
+  /// unless an Apple ID is signed into the simulator under
+  /// Settings → [your name]. On a real device with a signed-in Apple ID (and
+  /// the Runner.entitlements `com.apple.developer.applesignin` capability
+  /// present) this works correctly. There is nothing to fix in code.
+  ///
+  /// **Platform guard**: Apple Sign-In is iOS-only. The login UI already hides
+  /// this button on Android, but this guard ensures a clear error if called
+  /// from any non-iOS path rather than a native crash.
   Future<AppUser> signInWithApple() async {
+    if (!Platform.isIOS) {
+      throw UnsupportedError('Apple Sign-In is only available on iOS.');
+    }
     final appleCredential = await SignInWithApple.getAppleIDCredential(
       scopes: [
         AppleIDAuthorizationScopes.email,
@@ -102,6 +118,18 @@ class AuthService {
   /// Send a password-reset email.
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  // ── Update display name ───────────────────────────────────────────────────
+
+  /// Update display name in both Firebase Auth and Firestore.
+  Future<void> updateDisplayName(String displayName) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await Future.wait([
+      user.updateDisplayName(displayName),
+      _userRepo.updateDisplayName(user.uid, displayName),
+    ]);
   }
 
   // ── Sign out ──────────────────────────────────────────────────────────────

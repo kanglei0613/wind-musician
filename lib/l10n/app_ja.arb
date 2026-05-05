@@ -1,6 +1,6 @@
 {
   "@@locale": "ja",
-  "appName": "管楽器手帳",
+  "appName": "MuKlang",
   "navTuner": "チューナー",
   "navRecorder": "録音",
   "navAnalysis": "分析",
@@ -38,6 +38,7 @@
   "terminologyTitle": "音楽用語検索",
   "terminologyHint": "用語または略語を入力（例：ff、rit.）",
   "terminologyNotFound": "用語が見つかりません",
+  "terminologyButton": "音楽用語",
   "drawerSignIn": "サインイン",
   "drawerSignInDesc": "サインインして設定と記録を同期",
   "drawerAppearance": "外観",
@@ -173,5 +174,7 @@
   "metronomeSoundSine": "サイン波",
   "metronomeSoundWoodblock": "木魚",
   "metronomeSoundStickClick": "スティック",
-  "metronomeSoundSnare": "スネア"
+  "metronomeSoundSnare": "スネア",
+  "bugReportHint": "端末の機種名を記載し、状況をできるだけ詳しくお知らせください",
+  "bugReportOpenMail": "メールアプリを開く"
 }

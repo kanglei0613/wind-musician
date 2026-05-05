@@ -3,6 +3,7 @@ library;
 import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/constants/app_constants.dart';
+import '../../../shared/widgets/min_touch_target.dart';
 
 class TunerControls extends StatefulWidget {
   final double referenceA4;
@@ -53,6 +54,8 @@ class _TunerControlsState extends State<TunerControls> {
             const SizedBox(width: 4),
             Text(
               'A4 = ${widget.referenceA4.toStringAsFixed(0)} Hz',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: cs.onSurfaceVariant,
                 fontSize: 11,
@@ -130,16 +133,21 @@ class _ReferenceSheetContentState extends State<_ReferenceSheetContent> {
               const SizedBox(width: 32),
               Column(
                 children: [
-                  Text(
-                    _value.toStringAsFixed(0),
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 48,
-                      fontWeight: FontWeight.w700,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _value.toStringAsFixed(0),
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 48,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   Text(
                     'Hz',
+                    maxLines: 1,
                     style: TextStyle(
                       color: cs.onSurfaceVariant,
                       fontSize: 14,
@@ -248,17 +256,24 @@ class _AdjustButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    // Wrap in 48×48 touch target; keep visual circle at 44×44
     return GestureDetector(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          shape: BoxShape.circle,
+      behavior: HitTestBehavior.opaque,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: Center(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: cs.onSurface, size: 20),
+          ),
         ),
-        child: Icon(icon, color: cs.onSurface, size: 20),
       ),
     );
   }

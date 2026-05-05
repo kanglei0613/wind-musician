@@ -37,11 +37,12 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Column(
+      body: SafeArea(
+        child: Column(
         children: [
           // 錄音控制區
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 40),
+            padding: const EdgeInsets.symmetric(vertical: 32),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               boxShadow: [
@@ -145,6 +146,7 @@ class _RecorderPageState extends ConsumerState<RecorderPage> {
           // 錄音列表
           const Expanded(child: RecordingList()),
         ],
+        ),
       ),
     );
   }

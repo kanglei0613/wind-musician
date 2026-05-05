@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App display name shown in launcher, recents, and system settings -->
+    <string name="app_name">MuKlang</string>
+
+    <!-- Metronome foreground-service notification strings -->
+    <string name="metronome_channel_name">Metronome</string>
+    <string name="metronome_channel_desc">Metronome background playback notification</string>
+    <string name="metronome_notification_title">Metronome running</string>
+</resources>

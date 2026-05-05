@@ -8,8 +8,11 @@ class AppConstants {
   AppConstants._();
 
   // ── 環境設定 ──────────────────────────────────────
-  /// 切換開發/正式環境，上線前改成 false
-  static const bool isDev = true;
+  // ⚠️ BC-G2 PRE-RELEASE CHECKLIST: set isDev = false before uploading to
+  // Firebase App Distribution / App Store Connect. Leaving true connects
+  // all API calls to the local dev server (apiBaseUrlDev).
+  /// 切換開發/正式環境，【上線前必須改成 false】
+  static const bool isDev = true; // TODO: set false before production build
 
   // ── 後端 API ──────────────────────────────────────
   /// 本地開發時的後端網址
@@ -69,7 +72,9 @@ class AppConstants {
   static const String cloudRecordingPath = 'recordings';
 
   // ── 調音器設定 ────────────────────────────────────
-  /// 標準音高基準（Hz），A4 = 442Hz
+  // Default to 442 Hz (slightly sharp of international standard, common for wind ensembles).
+  // Users can adjust from tunerMinPitch (420 Hz) to tunerMaxPitch (460 Hz).
+  /// 標準音高基準（Hz），A4 = 442Hz（管樂合奏常用基準）
   static const double standardPitch = 442.0;
   /// 音分誤差容忍範圍，在這範圍內視為準確
   static const double tunerInTuneCents = 10.0;

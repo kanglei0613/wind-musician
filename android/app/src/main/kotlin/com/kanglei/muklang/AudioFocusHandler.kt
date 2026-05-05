@@ -1,4 +1,4 @@
-package com.kanglei.wind_musician
+package com.kanglei.muklang
 
 import android.content.Context
 import android.media.AudioAttributes

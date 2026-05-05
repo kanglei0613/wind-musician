@@ -53,6 +53,8 @@ class InstrumentSelector extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               localizedName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
             ),
             if (selectedInstrument.key != 'C') ...[

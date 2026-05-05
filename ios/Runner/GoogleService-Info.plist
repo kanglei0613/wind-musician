@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8.apps.googleusercontent.com</string>
+	<string>268061403551-7kl3gftb046g9nm3h020dr32nsjrtk5a.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.268061403551-n8viflhkppejbet01a0v9k4fmnoq31o8</string>
+	<string>com.googleusercontent.apps.268061403551-7kl3gftb046g9nm3h020dr32nsjrtk5a</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>268061403551-hc5hqi1q41cn13ujiv49ru38lj5a0bq1.apps.googleusercontent.com</string>
+	<string>268061403551-6r4rgg4qsh4l6dpdhtchfg3jr45fddco.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyBdKSmU_hF78tuQKvQ531xDkEzt4lqKjkc</string>
 	<key>GCM_SENDER_ID</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.kanglei.wind-musician</string>
+	<string>com.kanglei.muklang</string>
 	<key>PROJECT_ID</key>
 	<string>wind-musician</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:268061403551:ios:4061fdc7e4de58ae3535aa</string>
+	<string>1:268061403551:ios:4b7c30fd104d79893535aa</string>
 </dict>
 </plist>

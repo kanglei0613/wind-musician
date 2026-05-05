@@ -21,13 +21,18 @@ class TunerDisplay extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          pitchInfo?.noteOctave ?? '--',
-          style: TextStyle(
-            fontSize: 56,
-            fontWeight: FontWeight.w700,
-            color: _noteColor(cs),
-            letterSpacing: -2,
+        // Critical: note name display — use FittedBox to prevent overflow
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            pitchInfo?.noteOctave ?? '--',
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 56,
+              fontWeight: FontWeight.w700,
+              color: _noteColor(cs),
+              letterSpacing: -2,
+            ),
           ),
         ),
 
@@ -37,6 +42,8 @@ class TunerDisplay extends StatelessWidget {
           pitchInfo != null
               ? '${pitchInfo.frequency.toStringAsFixed(1)} Hz'
               : '-- Hz',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 14,
             color: cs.onSurfaceVariant,
@@ -52,6 +59,8 @@ class TunerDisplay extends StatelessWidget {
 
         Text(
           pitchInfo != null ? pitchInfo.centsDisplay : '0',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 16,
             color: _noteColor(cs),
@@ -63,6 +72,8 @@ class TunerDisplay extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             _statusText(pitchInfo, l),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
               color: cs.onSurfaceVariant,

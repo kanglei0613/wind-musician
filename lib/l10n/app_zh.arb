@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "appName": "管樂手帳",
+  "appName": "MuKlang",
   "navTuner": "調音器",
   "navRecorder": "錄音",
   "navAnalysis": "分析",
@@ -38,6 +38,7 @@
   "terminologyTitle": "音樂術語查詢",
   "terminologyHint": "輸入術語或縮寫（例如 ff、rit.）",
   "terminologyNotFound": "找不到這個術語",
+  "terminologyButton": "術語查詢",
   "drawerSignIn": "Sign In",
   "drawerSignInDesc": "登入以同步你的設定和紀錄",
   "drawerAppearance": "外觀",
@@ -173,5 +174,7 @@
   "metronomeSoundSine": "正弦波",
   "metronomeSoundWoodblock": "木魚",
   "metronomeSoundStickClick": "鼓棒",
-  "metronomeSoundSnare": "小鼓"
+  "metronomeSoundSnare": "小鼓",
+  "bugReportHint": "請附上行動裝置型號，盡可能詳述遇到的情況",
+  "bugReportOpenMail": "開啟郵件 App"
 }

@@ -3,12 +3,12 @@ import UIKit
 
 /// iOS 節拍器 Platform Channel 橋接
 ///
-/// Channel 名稱與 Android 相同：com.kanglei.wind_musician/metronome
+/// Channel 名稱與 Android 相同：com.kanglei.muklang/metronome
 /// 支援的 method：start / stop / updateBpm / updateTimeSig / setSoundType / setPitchVariant
 /// Native → Flutter 事件：透過同一 channel 回呼 "onBeat" method
 class MetronomePlugin: NSObject {
 
-    private static let channelName = "com.kanglei.wind_musician/metronome"
+    private static let channelName = "com.kanglei.muklang/metronome"
     private var channel: FlutterMethodChannel?
     private let engine = MetronomeEngine()
 

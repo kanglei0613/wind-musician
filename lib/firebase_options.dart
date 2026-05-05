@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '268061403551',
     projectId: 'wind-musician',
     storageBucket: 'wind-musician.firebasestorage.app',
-    iosBundleId: 'com.kanglei.wind-musician',
+    iosBundleId: 'com.kanglei.muklang',
   );
 }

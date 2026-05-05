@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../app.dart';
 import '../../features/auth/auth_provider.dart';
+import '../../features/auth/services/auth_service.dart';
 import '../../features/guide/user_guide_page.dart';
 import '../../shared/constants/app_constants.dart';
 import '../../shared/theme/color_mode_provider.dart';
@@ -41,11 +42,7 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               child: isSignedIn
-                  ? _SignedInHeader(
-                      displayName: firebaseUser.displayName ?? '',
-                      email: firebaseUser.email ?? '',
-                      photoUrl: firebaseUser.photoURL,
-                    )
+                  ? _SignedInHeaderWrapper(firebaseUid: firebaseUser.uid, photoUrl: firebaseUser.photoURL)
                   : _SignedOutHeader(
                       onSignIn: () {
                         Navigator.of(context).pop();
@@ -95,7 +92,10 @@ class AppDrawer extends ConsumerWidget {
                       _DrawerItem(
                         icon: Icons.bug_report_outlined,
                         label: l.drawerBugReport,
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.push('/feedback');
+                        },
                       ),
                     ],
                   ),
@@ -158,6 +158,11 @@ class AppDrawer extends ConsumerWidget {
           // 持久化語言選擇，冷啟動時從 SharedPreferences 恢復
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(AppConstants.keyLocale, code);
+          // 同步到 Firestore（已登入時）
+          final uid = ref.read(authStateProvider).valueOrNull?.uid;
+          if (uid != null) {
+            ref.read(userRepositoryProvider).updateSettings(uid, language: code);
+          }
           if (context.mounted) Navigator.pop(context);
         },
       ),
@@ -184,6 +189,15 @@ class AppDrawer extends ConsumerWidget {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(AppConstants.keyColorScheme, mode.scheme.name);
           await prefs.setString(AppConstants.keyColorBrightness, mode.brightness.name);
+          // 同步到 Firestore（已登入時）
+          final uid = ref.read(authStateProvider).valueOrNull?.uid;
+          if (uid != null) {
+            ref.read(userRepositoryProvider).updateSettings(
+              uid,
+              colorScheme: mode.scheme.name,
+              colorBrightness: mode.brightness.name,
+            );
+          }
         },
       ),
     );
@@ -533,15 +547,79 @@ class _LanguagePicker extends StatelessWidget {
 
 // ── Drawer header variants ────────────────────────────────────────────────────
 
+/// Loads the Firestore AppUser so the header can show the saved displayName
+/// and allow editing it.
+class _SignedInHeaderWrapper extends ConsumerWidget {
+  final String firebaseUid;
+  final String? photoUrl;
+
+  const _SignedInHeaderWrapper({
+    required this.firebaseUid,
+    required this.photoUrl,
+  });
+
+  Future<void> _showRenameDialog(BuildContext context, WidgetRef ref, String currentName) async {
+    final ctrl = TextEditingController(text: currentName);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('更改名稱'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          maxLength: 30,
+          decoration: const InputDecoration(hintText: '輸入新名稱'),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => Navigator.of(ctx).pop(true),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('儲存')),
+        ],
+      ),
+    );
+    ctrl.dispose();
+
+    if (confirmed != true) return;
+    final newName = ctrl.text.trim();
+    if (newName.isEmpty || newName == currentName) return;
+
+    await ref.read(authServiceProvider).updateDisplayName(newName);
+    ref.invalidate(currentUserProvider);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+    final firestoreName = userAsync.valueOrNull?.displayName ?? '';
+    final email = userAsync.valueOrNull?.email ?? '';
+
+    // Hide Apple private relay addresses — they're meaningless to users.
+    final showEmail = email.isNotEmpty && !email.contains('privaterelay.apple.com');
+
+    return GestureDetector(
+      onTap: () => _showRenameDialog(context, ref, firestoreName),
+      child: _SignedInHeader(
+        displayName: firestoreName,
+        email: showEmail ? email : '',
+        photoUrl: photoUrl,
+        showEditHint: true,
+      ),
+    );
+  }
+}
+
 class _SignedInHeader extends StatelessWidget {
   final String displayName;
   final String email;
   final String? photoUrl;
+  final bool showEditHint;
 
   const _SignedInHeader({
     required this.displayName,
     required this.email,
     required this.photoUrl,
+    this.showEditHint = false,
   });
 
   @override
@@ -563,15 +641,25 @@ class _SignedInHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                displayName,
-                style: TextStyle(
-                  color: cs.onSurface,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      displayName.isNotEmpty ? displayName : '設定名稱',
+                      style: TextStyle(
+                        color: displayName.isNotEmpty ? cs.onSurface : cs.onSurfaceVariant,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (showEditHint) ...[
+                    const SizedBox(width: 4),
+                    Icon(Icons.edit_outlined, size: 14, color: cs.onSurfaceVariant),
+                  ],
+                ],
               ),
               if (email.isNotEmpty) ...[
                 const SizedBox(height: 2),
