@@ -8,13 +8,246 @@
 
 ---
 
-## 簡介
+## 目錄
 
-**管樂手帳（Wind Musician）** 是一款針對業餘、半職業管樂手、樂隊成員與音樂學生打造的練習輔助工具。整合調音器、節拍器、音叉、錄音、練習行事曆等核心功能，讓每次練習更有效率、更有記錄。
+- [專案動機](#專案動機)
+- [系統架構](#系統架構)
+- [技術選型](#技術選型)
+- [核心設計：節拍器 Platform Channel](#核心設計節拍器-platform-channel)
+- [後端架構設計](#後端架構設計)
+- [Firestore 資料模型](#firestore-資料模型)
+- [功能概覽](#功能概覽)
+- [未來規劃與技術設計](#未來規劃與技術設計)
+- [快速啟動](#快速啟動)
+- [靜態分析與測試](#靜態分析與測試)
+- [版本紀錄](#版本紀錄)
 
-- **目標用戶**：業餘 / 半職業管樂手、管樂隊成員、音樂學生
-- **平台**：Android（Firebase App Distribution 測試中）、iOS（Apple Developer 審核中）
-- **語言**：繁體中文 / English / 日本語 / 한국어
+---
+
+## 專案動機
+
+管樂手帳的設計初衷來自一個真實的痛點：市面上的節拍器 App 在高 BPM 下節拍漂移，而調音器 App 不支援移調樂器，練習記錄又散落在不同工具裡。
+
+這個專案試圖回答以下問題：
+
+- 如何在 Flutter 框架上實現毫秒級精準的節拍器？（答案是原生 Platform Channel，不是 Dart Timer）
+- 如何設計一個在離線狀態下仍然可用的雲端同步 App？
+- 在個人 side project 的規模下，Firebase BaaS 是否是比自架 Server 更合理的選擇？
+
+---
+
+## 系統架構
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Wind Musician App                         │
+│               Flutter 3.x / Riverpod / go_router            │
+└────┬──────────┬──────────┬──────────┬────────────┬──────────┘
+     │          │          │          │            │
+     ▼          ▼          ▼          ▼            ▼
+ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────────┐
+ │調音器  │ │節拍器  │ │ 音叉  │ │ 錄音  │ │  行事曆    │
+ │(Dart + │ │(原生   │ │(Dart) │ │(record│ │(Firestore) │
+ │pitch   │ │Channel)│ │       │ │+audio)│ │            │
+ │detect) │ │        │ │       │ │       │ │            │
+ └────────┘ └───┬────┘ └────────┘ └───┬───┘ └─────┬──────┘
+                │                     │            │
+     ┌──────────┴──────┐               │            │
+     │                 │               │            │
+     ▼                 ▼               ▼            ▼
+ ┌─────────┐     ┌──────────┐   ┌─────────────────────────┐
+ │ Android │     │   iOS    │   │     Firebase Services    │
+ │Metronome│     │Metronome │   ├──────────┬──────────────┤
+ │Service  │     │Engine    │   │   Auth   │  Firestore   │
+ │(AudioTr)│     │(AVAudio) │   │ Storage  │ Crashlytics  │
+ └─────────┘     └──────────┘   └──────────┴──────────────┘
+```
+
+```mermaid
+flowchart TD
+    User["使用者"]
+
+    subgraph App["Flutter App Layer"]
+        Tuner["調音器\npitch_detector_dart"]
+        Metro["節拍器\nPlatform Channel"]
+        Recorder["錄音\nrecord + just_audio"]
+        Calendar["行事曆\nFirestore stream"]
+        Auth["帳號\nFirebase Auth"]
+    end
+
+    subgraph Native["原生層 Platform Channel"]
+        Android["Android\nMetronomeService\nAudioTrack"]
+        iOS["iOS\nAVAudioEngine\nmach hostTime"]
+    end
+
+    subgraph Firebase["Firebase Services"]
+        FAuth["Firebase Auth\nGoogle / Apple / Email"]
+        Firestore["Cloud Firestore\npracticeEntries / users\nensembles / ensembleEvents"]
+        Storage["Firebase Storage\n錄音檔（未來）"]
+        Crashlytics["Crashlytics\n崩潰回報"]
+    end
+
+    subgraph Future["未來擴展（AI 分析）"]
+        FastAPI["FastAPI\n接收分析請求"]
+        Celery["Celery Worker\nlibrosa + OpenAI"]
+        Redis["Redis\nCelery broker"]
+    end
+
+    User --> App
+    Metro -->|"MethodChannel"| Android
+    Metro -->|"MethodChannel"| iOS
+    Auth --> FAuth
+    Calendar --> Firestore
+    Recorder -.->|"未來"| Storage
+    App -.->|"未來"| FastAPI
+    FastAPI --> Redis --> Celery
+    Celery -.->|"寫回結果"| Firestore
+```
+
+---
+
+## 技術選型
+
+| 元件 | 選擇 | 原因 |
+|------|------|------|
+| UI Framework | Flutter 3.x | 單一 codebase 同時支援 Android / iOS，原生 Platform Channel 保留效能逃生口 |
+| 狀態管理 | Riverpod ^2.6.1 | 編譯期型別安全，Provider 間依賴明確，易於測試 |
+| 路由 | go_router ^14.0.0 | 宣告式路由，支援 deep link，符合 Flutter 官方推薦 |
+| 後端 | Firebase BaaS | 個人 side project 規模，BaaS 省去維運成本，可集中精力在 App 體驗 |
+| 資料庫 | Cloud Firestore | real-time stream 驅動 UI，離線快取內建，Security Rules 取代 API 層授權 |
+| 音高偵測 | pitch_detector_dart | 即時 FFT 分析，支援移調計算，無需後端 |
+| 節拍引擎 | 原生 Platform Channel | Dart Timer 精度不足（±5–10ms），原生音訊引擎可達 ±1ms 以內 |
+| 多語系 | ARB + flutter_localizations | 官方方案，支援 zh / en / ja / ko 四語系 |
+
+---
+
+## 核心設計：節拍器 Platform Channel
+
+### 為什麼不用 Dart Timer
+
+Dart 的 `Timer` 受 event loop 影響，在高 BPM（如 200+）下誤差可達 ±5–10ms，累積後節拍明顯漂移，對音樂練習場景不可接受。
+
+解決方案是透過 `MethodChannel('metronome')` 將節拍控制完全交給原生層，Dart 只負責 UI 與參數傳遞。
+
+### 執行流程
+
+```
+Flutter（Dart）
+  └─ MethodChannel('metronome')
+        ├─ start(bpm, beatsPerBar, subdivision)
+        ├─ stop()
+        └─ updateBpm(bpm)
+             │
+             ├─ Android
+             │    └─ MetronomeService（前景服務，確保背景持續播放）
+             │         └─ MetronomeEngine（AudioTrack 合成正弦波）
+             │              └─ AudioFocusHandler（接管音訊焦點）
+             │
+             └─ iOS
+                  └─ MetronomePlugin.swift（MethodChannel bridge）
+                       └─ MetronomeEngine.swift
+                            └─ AVAudioEngine + mach_absolute_time()
+                                 └─ hostTime 精準排程，±1ms 以內
+```
+
+### Android 前景服務設計
+
+Android 系統在 App 進入背景後可能終止進程，節拍器因此停止。解法是將 `MetronomeService` 宣告為 Foreground Service，系統不能隨意回收，並在通知欄顯示節拍器狀態，符合 Android 8.0+ 的背景執行限制。
+
+### iOS mach hostTime 精準排程
+
+iOS 的 `AVAudioEngine` 支援 `playerNode.play(at:)` 以 `AVAudioTime` 排程播放時機，搭配 `mach_absolute_time()` 計算絕對時間點，每一拍的音效都在精確的時間點被 schedule，不依賴 Timer 回呼的延遲。
+
+---
+
+## 後端架構設計
+
+### 為什麼選擇 Firebase BaaS
+
+本專案刻意選擇 Firebase 作為後端，而非自架 API Server。這是明確的架構取捨，不是技術能力的限制。
+
+管樂手帳是個人練習工具，核心價值在於 App 體驗與音訊正確性，而非後端系統設計。Firebase 提供的 Auth、Firestore、Storage、Crashlytics 覆蓋所有現有需求，BaaS 模式讓開發速度快一個數量級，且維運成本為零。
+
+當功能擴展到需要自訂運算邏輯（如 AI 演奏分析）時，不需要重構現有架構，只需在 Firebase 外側追加獨立的後端服務，兩者透過 Firestore 作為資料介面串接。
+
+### 身份驗證設計
+
+支援三種登入方式：Google、Apple Sign-In、Email/Password。
+
+Apple Sign-In 並非選配——App Store 審查規範 4.8 要求，只要 App 提供任何第三方社交登入，就必須同時提供 Apple Sign-In。
+
+```
+用戶點擊登入
+  → Google / Apple / Email 認證流程
+    → Firebase Auth 取得 credential
+      → _upsertUser()
+           ├─ 首次登入 → createUser（寫入 Firestore users/{uid}）
+           └─ 再次登入 → updateLastActive（只更新時間戳，不覆蓋用戶資料）
+```
+
+### 資料存取模式
+
+Firestore 查詢依使用情境分兩種模式：
+
+**一次性 fetch**（`getEntriesForMonth`）：用於初始載入，取得特定月份資料後不再訂閱，降低 Firestore 讀取計費。
+
+**Real-time stream**（`watchEntriesForMonth`）：用於需要即時反映的 UI（行事曆），透過 Riverpod `StreamProvider` 直接驅動畫面更新，Firestore SDK 內建連線恢復後自動重訂閱。
+
+### 離線設計
+
+練習紀錄同時寫入 Firestore 與本機 JSON 檔案（`practice_entries.json`）。
+
+```
+saveEntry(entry)
+  ├─ Firestore.set(entry) ─── 成功 ──────────────────────→ 完成
+  │                       └─ FirebaseException ─→ throw
+  └─ _upsertLocal(entry) ──── 本機 JSON 備份 ────────────→ 完成
+
+watchEntriesForMonth()
+  ├─ Firestore stream ─── 正常 ──→ UI 即時更新
+  └─ FirebaseException ── handleError ─→ 靜默處理，保留最後一次成功的資料
+                                         連線恢復後 provider 自動重建重新訂閱
+```
+
+這樣設計的結果是：Firestore 離線時 App 不會白屏或崩潰，已載入的資料繼續顯示，新增的資料寫入本機，等連線恢復後由用戶決定是否補同步。
+
+---
+
+## Firestore 資料模型
+
+```
+users/
+  └─ {uid}/
+       ├─ displayName: string
+       ├─ email: string
+       ├─ photoUrl: string
+       ├─ createdAt: timestamp
+       └─ lastActiveAt: timestamp
+
+practiceEntries/
+  └─ {entryId}/
+       ├─ userId: string
+       ├─ date: string (ISO 8601)
+       ├─ duration: number (minutes)
+       └─ content: string
+
+ensembles/
+  └─ {ensembleId}/
+       ├─ name: string
+       ├─ memberIds: string[]
+       └─ createdAt: timestamp
+            └─ events/
+                 └─ {eventId}/
+                      ├─ title: string
+                      ├─ date: string
+                      └─ location: string
+```
+
+### Security Rules 設計原則
+
+- `users/{uid}`：只有 `request.auth.uid == uid` 才可讀寫，防止用戶存取他人資料
+- `practiceEntries`：`where('userId', isEqualTo: uid)` 查詢搭配 Rules 的 `resource.data.userId == request.auth.uid` 確保資料隔離
+- `ensembles`：`memberIds.hasAny([request.auth.uid])` 確認成員身份才可讀取群組行程
 
 ---
 
@@ -23,12 +256,10 @@
 ### 已上線功能
 
 **🎵 調音器**
-即時音高偵測（麥克風輸入），支援 12 種管樂器移調（Bb / Eb / F / C），基準音高可調整（A4 = 400–480 Hz）。顯示音名、分音差（cents）及準確/偏高/偏低狀態。
+即時音高偵測（麥克風輸入），支援 12 種管樂器移調（Bb / Eb / F / C），基準音高可調整（A4 = 400–480 Hz）。顯示音名、分音差（cents）及準確 / 偏高 / 偏低狀態。
 
 **🥁 節拍器**（整合於調音器頁面）
-BPM 20–320，多拍型拍號（分子 1–12 / 分母 1–32），強拍提示音，段落練習模式。Android 與 iOS 使用原生 Platform Channel 確保精準節拍：
-- Android：`MetronomeService`（前景服務）+ `MetronomeEngine`（AudioTrack 合成）
-- iOS：`MetronomeEngine.swift`（AVAudioEngine + mach hostTime 精準排程）
+BPM 20–320，多拍型拍號（分子 1–12 / 分母 1–32），強拍提示音，段落練習模式。Android 與 iOS 使用原生 Platform Channel 確保精準節拍（詳見[核心設計](#核心設計節拍器-platform-channel)）。
 
 **🎹 音叉（PitchFork）**
 六角蜂巢排列 12 音鍵盤，支援 Sustain 持續音模式（長按保持），旋轉手勢切換八度。
@@ -43,12 +274,10 @@ BPM 20–320，多拍型拍號（分子 1–12 / 分母 1–32），強拍提示
 本地離線資料庫，多語系術語解釋，快速標籤一鍵查詢常用術語。
 
 **🐛 問題回報**
-App 內一鍵開啟郵件 App，自動帶入版本號與平台資訊，引導使用者描述問題。
+App 內一鍵開啟郵件 App，自動帶入版本號與平台資訊。
 
 **👤 帳號**
-Google 登入 / Apple 登入 / Email 帳號，Firebase Auth。
-
----
+Google / Apple / Email 登入，Firebase Auth。
 
 ### 開發中功能
 
@@ -56,7 +285,7 @@ Google 登入 / Apple 登入 / Email 帳號，Firebase Auth。
 |------|------|
 | AI 演奏分析 | 架構建立，串接中 |
 | 行程規劃 | 頁面架構建立，功能開發中 |
-| 社群（好友動態、排行榜） | 規劃中 |
+| 社群（好友動態、排行榜）| 規劃中 |
 | 樂譜瀏覽 / Score Following | 第二版實作 |
 
 ---
@@ -67,42 +296,66 @@ Google 登入 / Apple 登入 / Email 帳號，Firebase Auth。
 
 **功能目標**：用戶錄音後，系統自動分析音準準確率、節拍穩定度、力度曲線，並生成自然語言的練習建議。
 
-**為什麼需要獨立後端**：音訊分析涉及 `librosa`、`numpy` 等 Python 生態的運算，且單次分析可能耗時 10–30 秒，Firebase Cloud Functions 有 9 分鐘 timeout 與 512MB 記憶體限制，且 Python runtime cold start 體驗差，不適合作為分析主體。因此採用獨立的 Python microservice。
+**為什麼需要獨立後端**：音訊分析涉及 `librosa`、`numpy` 等 Python 生態的運算，且單次分析可能耗時 10–30 秒。Firebase Cloud Functions 有 9 分鐘 timeout 與 512MB 記憶體限制，Python runtime cold start 體驗差，不適合作為分析主體。
 
 **技術選型**：
-- `FastAPI`：輕量 async API framework，接收分析請求
-- `Celery + Redis`：任務佇列，避免 HTTP request 長時間等待；FastAPI 收到請求後立即回傳 `jobId`，Celery worker 在背景執行分析
-- `librosa`：音高偵測統計、onset detection（節拍誤差）、RMS energy（力度曲線）
-- `OpenAI API`：將量化數據轉換為自然語言的練習建議
-- 部署於 Railway / Fly.io，Firebase Storage 存音檔，分析結果寫回 Firestore
+
+| 元件 | 選擇 | 原因 |
+|------|------|------|
+| API Framework | FastAPI | async 支援，自動生成文件，型別提示完整 |
+| 任務佇列 | Celery + Redis | 分析任務非同步執行，API 立即回傳 jobId，不讓 HTTP request 等待 |
+| 音訊分析 | librosa | 音高統計、onset detection、RMS energy 計算 |
+| 建議生成 | OpenAI API | 將量化數據轉為自然語言練習建議 |
+| 部署 | Railway / Fly.io | 無需管理 VM，免費額度適合 side project |
 
 **完整流程**：
 
 ```
 App 錄音完成
   → 上傳至 Firebase Storage
-  → 呼叫 FastAPI（送 storage path）
-  → FastAPI 回傳 jobId，Celery worker 非同步處理
-    → 下載音檔 → librosa 分析 → 呼叫 OpenAI 生成建議
-    → 結果寫回 Firestore（該用戶的 analysisResults collection）
+  → POST /analyze（送 storage path）
+       → FastAPI 回傳 jobId（立即）
+       → Celery Worker 非同步處理
+            ├─ 下載音檔
+            ├─ librosa 分析
+            │    ├─ 音準準確率：每幀音高 vs 目標音高，統計 ±20 cents 內比例
+            │    ├─ 節拍穩定度：onset detection 計算每拍誤差標準差
+            │    └─ 力度曲線：RMS energy 時間序列
+            ├─ 量化數據 → OpenAI API → 自然語言建議
+            └─ 寫回 Firestore（analysisResults/{userId}/{jobId}）
   → App real-time stream 收到更新，顯示分析報告
 ```
 
-**分析指標說明**：
-- 音準準確率：對每幀偵測到的音高與目標音高比對，統計 ±20 cents 內的比例
-- 節拍穩定度：onset detection 算出每拍實際時間點，與 BPM 理想值的標準差
-- 力度曲線：RMS energy 的時間序列，可視化練習段落的強弱變化
+```mermaid
+sequenceDiagram
+    participant App
+    participant Storage as Firebase Storage
+    participant API as FastAPI
+    participant Queue as Redis + Celery
+    participant AI as OpenAI API
+    participant DB as Firestore
+
+    App->>Storage: 上傳錄音檔
+    App->>API: POST /analyze (storagePath)
+    API-->>App: 202 { jobId }
+    API->>Queue: enqueue(jobId, storagePath)
+    Queue->>Storage: 下載音檔
+    Queue->>Queue: librosa 分析（音準 / 節拍 / 力度）
+    Queue->>AI: 量化數據 → 生成建議文字
+    Queue->>DB: 寫入 analysisResults
+    DB-->>App: real-time stream 推送結果
+```
 
 ---
 
 ### 行程規劃
 
-**功能目標**：個人練習排程設定（含提醒）、樂團成員共用行程（如排練、演出日期）。
+**功能目標**：個人練習排程（含提醒）、樂團成員共用行程。
 
 **技術設計**：
-- 個人行程與樂團行程分別存於 Firestore `schedules` 和 `ensembleEvents` collections，已有資料模型基礎
-- 提醒功能透過 Firebase Cloud Messaging（FCM）發送推播，後端觸發點可使用 Cloud Functions scheduled trigger（Firestore 文件到期前 X 小時觸發）
-- 不需要自架 server，全部在 Firebase 生態內完成
+- 個人行程與樂團行程分別存於 Firestore `schedules` 和 `ensembleEvents` collections
+- 提醒推播透過 Firebase Cloud Messaging（FCM），觸發點使用 Cloud Functions scheduled trigger（文件到期前 X 小時）
+- 純 Firebase 實現，不需要自架 server
 
 ---
 
@@ -111,111 +364,44 @@ App 錄音完成
 **功能目標**：好友練習動態 feed、每月練習時長排行榜。
 
 **技術設計**：
-- 好友關係存於 Firestore `friendships` collection，雙向關係以 `status: pending / accepted` 管理
-- 動態 feed 採 Fanout-on-write：用戶新增練習紀錄時，同時寫入所有好友的 `feed` sub-collection，讓每個用戶的 feed 查詢只需讀自己的文件，不需要 join
-- 排行榜以 Firestore 聚合查詢（`orderBy('monthlyMinutes').limit(50)`）實作，月初透過 Cloud Functions scheduled trigger 重置計數
-- 此功能純 Firebase 即可實現，不需要額外後端
 
-**取捨考量**：Fanout-on-write 在好友數量極大時（1000+）寫入成本高，但管樂社群屬於小圈子產品，預期好友數在數十人以內，此策略合理。
+```
+好友關係
+  friendships/{userId_friendId}
+    ├─ status: pending | accepted
+    ├─ fromId: string
+    └─ toId: string
+
+動態 Feed（Fanout-on-write）
+  用戶新增練習紀錄
+    → 同時寫入所有好友的 feed/{friendId}/items/{entryId}
+    → 每個用戶 feed 查詢只讀自己的 sub-collection，不需要 join
+
+排行榜
+  leaderboard/{month}/{userId}
+    └─ monthlyMinutes: number
+  → Cloud Functions 每月 1 日重置，每次 saveEntry 累加
+```
+
+**取捨說明**：Fanout-on-write 在好友數極多時（1000+）寫入成本高。管樂社群是小圈子產品，預期好友數在數十人以內，此策略在現階段合理，未來若用戶規模擴大可改用 Pull-on-read 搭配 Cache。
 
 ---
 
 ### 樂譜瀏覽 / Score Following
 
-**功能目標**：
-- 短期：PDF 樂譜上傳、分頁瀏覽、自動翻頁
-- 長期：演奏時即時追蹤樂譜位置（Score Following）
-
-**技術設計（短期）**：
-- 樂譜 PDF 存於 Firebase Storage，metadata（曲名、樂器、難度）存 Firestore
-- App 端使用 `pdfx` 套件渲染，自動翻頁依節拍器 BPM 與小節數計算觸發時機
+**短期（靜態翻頁）**：
+- PDF 樂譜存於 Firebase Storage，metadata 存 Firestore
+- App 端 `pdfx` 套件渲染，依 BPM × 小節數計算自動翻頁時機
 - 純 Firebase，不需要後端
 
-**技術設計（長期 Score Following）**：
-- 真正的 Score Following 需要即時比對演奏音訊與樂譜的時間軸，核心演算法為 DTW（Dynamic Time Warping）或 HMM
-- 計算量遠超 on-device 能力，需要後端串流處理（WebSocket 或 chunked HTTP）
-- 此功能複雜度高，列為長期研究方向，目前優先實作短期的靜態翻頁版本
+**長期（Score Following）**：
+- 即時比對演奏音訊與樂譜時間軸，核心演算法為 DTW（Dynamic Time Warping）
+- 計算量遠超 on-device 能力，需後端串流處理（WebSocket）
+- 此功能列為長期研究方向，目前優先實作靜態翻頁版本
 
 ---
 
-## 技術架構
-
-### 框架與語言
-
-- **Flutter 3.x / Dart 3.x**
-- 狀態管理：`flutter_riverpod ^2.6.1`
-- 路由：`go_router ^14.0.0`
-- 多語系：`flutter_localizations` + ARB（app_zh / en / ja / ko）
-
-### 後端與服務
-
-| 套件 | 用途 |
-|------|------|
-| `firebase_core` / `firebase_auth` | 認證 |
-| `cloud_firestore` | 雲端資料同步 |
-| `firebase_crashlytics` | 崩潰回報 |
-| `google_sign_in` / `sign_in_with_apple` | 社交登入 |
-
-### 音訊
-
-| 套件 | 用途 |
-|------|------|
-| `pitch_detector_dart` | 即時音高偵測 |
-| `record` | 錄音 |
-| `just_audio` | 錄音播放 |
-| `flutter_soloud` | 桌面 / 備援音訊引擎 |
-
-### Android 原生（Platform Channel）
-
-| 元件 | 說明 |
-|------|------|
-| `MetronomeService` | 前景服務，確保背景持續播放 |
-| `MetronomeEngine` | `AudioTrack` 精確音訊合成 |
-| `AudioFocusHandler` | 音訊焦點管理 |
-| `NotificationHelper` | 前景服務通知 |
-
-### iOS 原生（Platform Channel）
-
-| 元件 | 說明 |
-|------|------|
-| `MetronomeEngine.swift` | AVAudioEngine + mach hostTime 精準排程 |
-| `MetronomePlugin.swift` | Flutter MethodChannel bridge |
-
----
-
-## 後端架構設計
-
-### 為什麼選擇 Firebase BaaS
-
-本專案刻意選擇 Firebase 作為後端，而非自架 API Server，原因是這個規模的個人工具 App 不需要承擔伺服器維運成本。Firebase 提供的 Auth、Firestore、Storage、Crashlytics 已覆蓋所有現有需求，開發速度更快，且可以讓精力集中在 App 本身的體驗上。
-
-這是一個明確的架構取捨，而非技術能力的限制。當功能擴展到需要自訂運算邏輯（如 AI 分析）時，會在 Firebase 外側追加獨立的後端服務。
-
-### 身份驗證設計
-
-支援三種登入方式：Google、Apple Sign-In、Email/Password。
-
-Apple Sign-In 並非選配功能——App Store 審查規範 4.8 明確要求，只要 App 提供任何第三方社交登入，就必須同時提供 Apple Sign-In。
-
-登入後透過 `AuthService._upsertUser` 在 Firestore `users` collection 管理使用者文件：首次登入建立文件，之後只更新 `lastActiveAt`，避免覆蓋用戶自訂資料。
-
-### 資料存取模式
-
-Firestore 的查詢依使用情境分兩種模式：
-
-**一次性 fetch**（`getEntriesForMonth`）：用於初始載入，取得特定月份資料後不再訂閱，降低 Firestore 讀取計費。
-
-**Real-time stream**（`watchEntriesForMonth`）：用於需要即時反映的 UI（例如行事曆），透過 Riverpod `StreamProvider` 直接驅動畫面更新。
-
-### 離線設計
-
-練習紀錄同時寫入 Firestore 與本機 JSON 檔案（`practice_entries.json`）。Firestore 離線或連線不穩時自動 fallback 到本機資料，用戶不會看到空白畫面或錯誤提示。
-
-Firestore Stream 的 `FirebaseException` 以 `handleError` 靜默攔截，保留最後一次成功的資料繼續顯示，連線恢復後 provider 自動重建重新訂閱。
-
----
-
-## 本地開發設定
+## 快速啟動
 
 ### 前置需求
 
