@@ -457,4 +457,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get metronomeSoundSnare => 'スネア';
+
+  @override
+  String get bugReportHint => '端末の機種名を記載し、状況をできるだけ詳しくお知らせください';
+
+  @override
+  String get bugReportOpenMail => 'メールアプリを開く';
 }

@@ -458,4 +458,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metronomeSoundSnare => 'Snare';
+
+  @override
+  String get bugReportHint =>
+      'Please include your device model and describe the issue in detail';
+
+  @override
+  String get bugReportOpenMail => 'Open Mail App';
 }

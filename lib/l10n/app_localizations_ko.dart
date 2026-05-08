@@ -456,4 +456,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get metronomeSoundSnare => '스네어';
+
+  @override
+  String get bugReportHint => '기기 모델을 포함하여 상황을 최대한 자세히 설명해 주세요';
+
+  @override
+  String get bugReportOpenMail => '메일 앱 열기';
 }

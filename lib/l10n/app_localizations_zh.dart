@@ -456,4 +456,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get metronomeSoundSnare => '小鼓';
+
+  @override
+  String get bugReportHint => '請附上行動裝置型號，盡可能詳述遇到的情況';
+
+  @override
+  String get bugReportOpenMail => '開啟郵件 App';
 }
