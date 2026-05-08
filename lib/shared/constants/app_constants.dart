@@ -12,7 +12,7 @@ class AppConstants {
   // Firebase App Distribution / App Store Connect. Leaving true connects
   // all API calls to the local dev server (apiBaseUrlDev).
   /// 切換開發/正式環境，【上線前必須改成 false】
-  static const bool isDev = true; // TODO: set false before production build
+  static const bool isDev = false;
 
   // ── 後端 API ──────────────────────────────────────
   /// 本地開發時的後端網址

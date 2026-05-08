@@ -1,7 +1,7 @@
 name: wind_musician
 description: "管樂人練習工具 App"
 publish_to: 'none'
-version: 1.0.1+3
+version: 1.0.6+6
 
 environment:
   sdk: ^3.11.4
