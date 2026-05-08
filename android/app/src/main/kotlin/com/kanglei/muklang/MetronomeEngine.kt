@@ -178,7 +178,7 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
         val (strongFreq, weakFreq) =
             pitchVariantFreqs[currentPitchVariant] ?: Pair(1000.0, 750.0)
         val freq = if (isStrong) strongFreq else weakFreq
-        val amp  = if (isStrong) 0.85f else 0.55f
+        val amp  = if (isStrong) 1.0f else 0.75f
 
         return when (currentSoundType) {
             SoundType.SINE       -> buildSineTrack(freq, amp)
@@ -225,7 +225,7 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
         val durationMs   = 80
         val numSamples   = sampleRate * durationMs / 1000
         val decaySamples = sampleRate * 30 / 1000   // 30ms 快速衰減
-        val peakAmp      = 0.9f
+        val peakAmp      = 1.0f
         val pcm = ShortArray(numSamples)
 
         for (i in 0 until numSamples) {
@@ -254,7 +254,7 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
         val durationMs   = 50
         val numSamples   = sampleRate * durationMs / 1000
         val decaySamples = sampleRate * 15 / 1000   // 15ms 極短衰減
-        val peakAmp      = 0.9f
+        val peakAmp      = 1.0f
         val pcm = ShortArray(numSamples)
 
         for (i in 0 until numSamples) {
@@ -283,7 +283,7 @@ class MetronomeEngine(private val onBeat: () -> Unit) {
         val durationMs   = 100
         val numSamples   = sampleRate * durationMs / 1000
         val decaySamples = sampleRate * 60 / 1000   // 60ms 線性衰減
-        val peakAmp      = 0.9f
+        val peakAmp      = 1.0f
         val noiseRatio   = 0.4f
         val random       = java.util.Random(42L)     // 固定 seed，確保每次相同
         val pcm = ShortArray(numSamples)

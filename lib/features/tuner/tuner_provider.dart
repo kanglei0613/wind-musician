@@ -140,8 +140,8 @@ class TunerNotifier extends StateNotifier<TunerState> {
 
         if (!mounted) return;
 
-        // probability > 0.9 才視為可靠的音高偵測
-        if (result.pitched && result.probability > 0.9) {
+        // probability > 0.75 才視為可靠的音高偵測（較低門檻，提升靈敏度）
+        if (result.pitched && result.probability > 0.75) {
           _noSignalCount = 0;
           final pitchInfo = MusicUtils.frequencyToPitch(
             result.pitch,

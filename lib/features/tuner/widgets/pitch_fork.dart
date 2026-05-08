@@ -114,7 +114,7 @@ class _PitchForkState extends State<PitchFork> {
       final handle = await SoLoud.instance.play(
         source, volume: 0.0, looping: true,
       );
-      SoLoud.instance.fadeVolume(handle, 0.9, const Duration(milliseconds: 15));
+      SoLoud.instance.fadeVolume(handle, 1.0, const Duration(milliseconds: 15));
       setState(() => _activeHandles[note] = handle);
     } catch (_) {}
   }

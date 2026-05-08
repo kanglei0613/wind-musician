@@ -164,7 +164,7 @@ class MetronomeEngine {
         for i in 0..<Int(frames) {
             let t = Double(i) / sampleRate
             let env = Float(exp(-Double(i) / decay))
-            data[i] = Float(sin(2.0 * .pi * freq * t)) * env * 0.8
+            data[i] = Float(sin(2.0 * .pi * freq * t)) * env * 1.0
         }
     }
 
@@ -177,7 +177,7 @@ class MetronomeEngine {
             let v = Float(sin(2.0 * .pi * freq * t))
                   + Float(sin(2.0 * .pi * freq * 2.76 * t)) * 0.4
                   + Float(sin(2.0 * .pi * freq * 5.40 * t)) * 0.15
-            data[i] = v * env * 0.7
+            data[i] = v * env * 1.0
         }
     }
 
@@ -189,7 +189,7 @@ class MetronomeEngine {
             let env = Float(exp(-Double(i) / decay))
             let v = Float(sin(2.0 * .pi * freq * t))
                   + Float(sin(2.0 * .pi * freq * 3.0 * t)) * 0.5
-            data[i] = v * env * 0.9
+            data[i] = v * env * 1.0
         }
     }
 
@@ -201,7 +201,7 @@ class MetronomeEngine {
             let env = Float(exp(-Double(i) / decay))
             let body  = Float(sin(2.0 * .pi * freq * t)) * 0.5
             let noise = Float.random(in: -1...1) * 0.5
-            data[i] = (body + noise) * env * 0.75
+            data[i] = (body + noise) * env * 1.0
         }
     }
 

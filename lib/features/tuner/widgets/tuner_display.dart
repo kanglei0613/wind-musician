@@ -68,18 +68,17 @@ class TunerDisplay extends StatelessWidget {
           ),
         ),
 
-        if (pitchInfo != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            _statusText(pitchInfo, l),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              color: cs.onSurfaceVariant,
-            ),
+        // 永遠佔位，避免有無偵測到音高時 Column 高度改變造成畫面跳動
+        const SizedBox(height: 4),
+        Text(
+          pitchInfo != null ? _statusText(pitchInfo, l) : '',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13,
+            color: cs.onSurfaceVariant,
           ),
-        ],
+        ),
       ],
     );
   }

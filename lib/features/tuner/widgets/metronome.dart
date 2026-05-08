@@ -209,7 +209,8 @@ class _MetronomeState extends State<Metronome>
       );
       // Bug 4：BPM 改變時重置拍位，確保下一個 onBeat 回呼算出 beat=0（強拍）
       // 等同於 _start() 的初始狀態，_onBeat 內 nextBeat = (-1+1)%n = 0
-      if (_isPlaying) _currentBeat = -1;
+      // 段落練習中不重置：段落切換依賴連續的小節計數，重置會破壞計數邏輯
+      if (_isPlaying && !_sectionMode) _currentBeat = -1;
     });
     if (_isPlaying) {
       if (Platform.isAndroid || Platform.isIOS) {

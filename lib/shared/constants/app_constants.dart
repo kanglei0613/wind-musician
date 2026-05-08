@@ -128,6 +128,8 @@ class AppConstants {
   static const String keyMetronomeSoundType = 'metronome_sound_type';
   /// 節拍器音高變體（1~5）
   static const String keyMetronomePitchVariant = 'metronome_pitch_variant';
+  /// 側拉選單新手提示是否已顯示過（只顯示一次）
+  static const String keyDrawerHintShown = 'drawer_hint_shown';
   /// 是否為 Pro 用戶（從 Supabase 同步過來）
   static const String keyIsPro = 'is_pro';
   /// 本月已使用的 AI 分析次數

@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'features/auth/login_page.dart';
 import 'features/calendar/calendar_page.dart';
 import 'features/calendar/ensemble_page.dart';
 import 'features/community/community_page.dart';
 import 'features/feedback/feedback_page.dart';
+import 'shared/constants/app_constants.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 import 'shared/widgets/app_drawer.dart';
 import 'features/tuner/tuner_page.dart';
@@ -60,6 +62,45 @@ class _ScaffoldWithBottomNavState extends State<ScaffoldWithBottomNav> {
 
   /// 記錄上一次按下返回鍵的時間，用於實現「再按一次以退出」
   DateTime? _lastBackPress;
+
+  @override
+  void initState() {
+    super.initState();
+    // 首次啟動顯示側拉選單提示（只顯示一次）
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowDrawerHint());
+  }
+
+  Future<void> _maybeShowDrawerHint() async {
+    if (!mounted) return;
+    final prefs = await SharedPreferences.getInstance();
+    final shown = prefs.getBool(AppConstants.keyDrawerHintShown) ?? false;
+    if (shown || !mounted) return;
+
+    // 等頁面完全載入後再顯示
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.menu_open_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '從左側邊緣右滑可開啟設定選單',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    await prefs.setBool(AppConstants.keyDrawerHintShown, true);
+  }
 
   int _locationToIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
