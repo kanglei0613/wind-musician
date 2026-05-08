@@ -21,13 +21,13 @@ class _PitchForkState extends State<PitchFork> {
   static const _pitchForkChannel =
       MethodChannel('com.kanglei.muklang/pitch_fork');
 
-  static const _row0 = ['C', 'C#', 'D', 'D#', 'E'];
+  static const _row0 = ['C', 'Db', 'D', 'Eb', 'E'];
   static const _row1notes = ['B', 'F'];
-  static const _row2 = ['A#', 'A', 'G#', 'G', 'F#'];
+  static const _row2 = ['Bb', 'A', 'Ab', 'G', 'Gb'];
 
   static const _noteIndices = {
-    'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5,
-    'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11,
+    'C': 0, 'Db': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5,
+    'Gb': 6, 'G': 7, 'Ab': 8, 'A': 9, 'Bb': 10, 'B': 11,
   };
 
   final Map<String, SoundHandle> _activeHandles = {};
@@ -328,14 +328,14 @@ class _PitchForkState extends State<PitchFork> {
         _widgetCenter = Offset(w / 2, h / 2);
         _layoutHexR = hexR;
         _noteCenters.clear();
-        // 排 0：C C# D D# E
+        // 排 0：C Db D Eb E
         for (int i = 0; i < _row0.length; i++) {
           _noteCenters[_row0[i]] = Offset(x0Start + i * colStep, y0);
         }
         // 排 1：B ... F
         _noteCenters['B'] = Offset(x1Start, y1);
         _noteCenters['F'] = Offset(x1Start + colStep * 5, y1);
-        // 排 2：A# A G# G F#
+        // 排 2：Bb A Ab G Gb
         for (int i = 0; i < _row2.length; i++) {
           _noteCenters[_row2[i]] = Offset(x0Start + i * colStep, y2);
         }
@@ -352,7 +352,7 @@ class _PitchForkState extends State<PitchFork> {
           ),
           child: Stack(
             children: [
-              // 排0：C C# D D# E
+              // 排0：C Db D Eb E
               ..._row0.asMap().entries.map((e) {
                 final note = e.value;
                 final x = x0Start + e.key * colStep;
@@ -469,7 +469,7 @@ class _PitchForkState extends State<PitchFork> {
                 onUp: () => _onNoteUp('F'),
               ),
 
-              // 排2：A# A G# G F#
+              // 排2：Bb A Ab G Gb
               ..._row2.asMap().entries.map((e) {
                 final note = e.value;
                 final x = x0Start + e.key * colStep;
