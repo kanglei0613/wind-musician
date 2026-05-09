@@ -1,0 +1,5 @@
+pyjwt
+cryptography
+requests
+google-auth
+google-auth-httplib2

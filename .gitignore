@@ -57,3 +57,15 @@ AuthKey_*.p8
 
 # 測試人員名單（個資）
 ios_emails.txt
+ios_not_installed.txt
+android_not_installed.txt
+
+# Firebase 服務帳戶金鑰
+*firebase-adminsdk*.json
+
+# Gmail 憑證設定
+email_config.py
+
+# 提醒記錄（本地追蹤，不同裝置各自維護）
+ios_reminder_log.json
+android_reminder_log.json
